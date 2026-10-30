@@ -1,0 +1,13 @@
+{
+  "enabled": true,
+  "name": "Create ATIMS spec directory",
+  "description": "Create the spec directory for the ATIMS project",
+  "version": "1",
+  "when": {
+    "type": "userTriggered"
+  },
+  "then": {
+    "type": "runCommand",
+    "command": "mkdir -p \".kiro/specs/atims-asset-tracking\""
+  }
+}

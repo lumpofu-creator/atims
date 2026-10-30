@@ -1,0 +1,6 @@
+# ATIMS root .htaccess
+RewriteEngine On
+RewriteBase /
+
+# Route /atims-be/ requests to atims-be/index.php
+RewriteRule ^atims-be/(.*)$ atims-be/index.php?path=$1 [QSA,L]

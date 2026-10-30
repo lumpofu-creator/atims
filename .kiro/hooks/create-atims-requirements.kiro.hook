@@ -1,0 +1,13 @@
+{
+  "enabled": true,
+  "name": "Generate ATIMS Requirements Document",
+  "description": "Create comprehensive requirements document for ATIMS asset tracking system",
+  "version": "1",
+  "when": {
+    "type": "userTriggered"
+  },
+  "then": {
+    "type": "runCommand",
+    "command": ""
+  }
+}

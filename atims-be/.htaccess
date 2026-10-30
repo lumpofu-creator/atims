@@ -1,0 +1,28 @@
+# Basic Apache configuration for ATIMS Backend
+
+# Enable URL rewriting
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /atims-be/
+
+    # Allow direct access to existing files (including .php and static files)
+    RewriteCond %{REQUEST_FILENAME} -f
+    RewriteRule ^(.*)$ $1 [L]
+
+    # Allow direct access to existing directories
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteRule ^(.*)$ $1 [L]
+
+    # Route API requests to index.php
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^api/(.*)$ index.php?path=api/$1 [QSA,L]
+
+    # Route everything else to index.php
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^(.*)$ index.php?path=$1 [QSA,L]
+</IfModule>
+
+# Enable directory listing (temporarily for debugging)
+Options +Indexes

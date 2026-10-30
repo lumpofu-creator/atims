@@ -1,0 +1,440 @@
+================================================================================
+          USER REQUIREMENTS SPECIFICATION (URS) - PROJECT: ATIMS
+===========================================================================f=====
+Document Version: 1.1
+Target Stack: Angular (Frontend PWA (Progressive Web App)) | PHP (Backend API) | MySQL (Database)
+Language: English
+Strict Host Strategy: Staging on Shared Hosting | Production on Dedicated Server
+================================================================================
+
+1. INTRODUCTION & OPERATIONAL CONTEXT
+--------------------------------------------------------------------------------
+1.1 Project Purpose
+The Asset Tracking and Infrastructure Management System (ATIMS) provides public sector entities, 
+ministries, and municipal authorities with comprehensive control, tracking, 
+and auditability over state infrastructure and physical property. 
+
+1.2 Infrastructure Strategy
+- Phase 1 (Staging/Demo): The entire application must be optimized to run 
+  efficiently within a low-cost Shared Hosting environment. This is used 
+  exclusively for development, staging, and pitching to stakeholders.
+- Phase 2 (Production Lift-and-Shift): Upon contract signing, the entire stack 
+  will be lifted and shifted to highly secure, dedicated local infrastructure 
+  within the host country to guarantee absolute data sovereignty and compliance 
+  with national security frameworks.
+
+1.3 Core Operational Rules
+- All backend responses must execute under 2.0 seconds to keep the app highly 
+  responsive during the demo/shared hosting phase.
+- The system must communicate via lightweight data payloads to preserve mobile 
+  bandwidth for workers on the street.
+- Mobile interfaces must operate under an "Offline-First" model to ensure 
+  workers can log data in remote territories with unstable mobile networks.
+
+
+2. USER PERSONAS & PRIVILEGES (ROLE-BASED ACCESS CONTROL)
+--------------------------------------------------------------------------------
+The system must strictly enforce four distinct view privileges and process boundaries:
+
+2.1 Logistics Officer (Administrative Workspace)
+- Device Environment: Desktop Office PC (Standard Web Browser).
+- User Workflow: Responsible for onboarding new state inventory, entering purchase 
+  costs, modifying asset categories, and printing physical identification tags.
+- Access Level: Create and Update asset records; no Delete privileges.
+- Additional Privileges: Invite new users, deactivate accounts, manage QR code templates.
+
+2.2 Field Agent (Operational Mobile Workspace)
+- Device Environment: Low-end cellular smartphones (Mobile Web Browser).
+- User Workflow: Performs real-time field audits, inspects infrastructure health, 
+  scans physical asset tags, and uploads live photo verification.
+- Access Level: Create inspection logs only; zero access to core financial values 
+  or backend system configurations.
+- Additional Privileges: View assigned assets, scan QR codes, submit location data.
+
+2.3 State Auditor / System Inspector (Forensic Tracking Workspace)
+- Device Environment: Desktop Office PC or Tablet.
+- User Workflow: Reviews administrative changes, traces historical property 
+  movements, and investigates system alerts or missing public property.
+- Access Level: Strict Read-Only privileges across the entire database, with 
+  unfiltered access to the immutable system timeline.
+- Additional Privileges: Export audit logs, generate compliance reports, flag anomalies.
+
+2.4 Decision-Making Authority (Executive Dashboard View - Minister / Governor)
+- Device Environment: Desktop Screen, Tablet, or Executive Boardroom Screen.
+- User Workflow: High-level overview of regional asset health, financial loss 
+  monitoring, and tracking emergency maintenance requirements.
+- Access Level: Read-Only aggregated dashboards, map views, and alert queues.
+- Additional Privileges: Approve asset write-offs, generate strategic reports, manage departments.
+
+
+3. FUNCTIONAL REQUIREMENTS MATRIX
+--------------------------------------------------------------------------------
+
+MODULE 1: EXECUTIVE DASHBOARD (GIS & OVERVIEW CONTROL)
+--------------------------------------------------------------------------------
+FR-DASH-01: Spatial GIS Mapping
+The interface must integrate an interactive map (using open-source Leaflet.js) 
+to display all registered asset locations geographically without requiring paid 
+external map API services.
+
+FR-DASH-02: Status Color-Coding
+Asset map pins must change color dynamically based on their operational state:
+- Green: Functional (Working normally)
+- Red: Broken Down (Requires urgent repair)
+- Gray: Unverified (Missing recent inspections)
+
+FR-DASH-03: Performance KPI Telemetry
+The dashboard header must feature real-time calculation cards displaying:
+- Total Portfolio Value (The sum value of all active state property)
+- Operational Health Rate (The overall percentage of functional infrastructure)
+- Capital at Risk (The total monetary value currently tied up in broken assets)
+
+MODULE 2: FIELD WORKER TRACKER (OFFLINE MOBILE OPERATIONS)
+--------------------------------------------------------------------------------
+FR-TRK-01: Camera-Based Tag Scanning
+The mobile interface must utilize the smartphone's built-in camera to scan 
+and translate physical asset tags instantly within the browser web page.
+
+FR-TRK-02: Offline Data Saving
+When cellular network access drops completely, the application must block standard 
+web requests and automatically write the inspection data safely into the mobile 
+phone's built-in local browser storage.
+
+FR-TRK-03: Background Auto-Synchronization
+An internal background worker must constantly check the phone's connection status. 
+The exact second a cellular signal returns, it must automatically upload the saved 
+offline inspection queue to the backend database and clear the phone's temporary cache.
+
+FR-TRK-04: Automatic Location & Time Logging
+Every submitted mobile verification must automatically capture and attach the 
+phone's native hardware GPS string (latitude/longitude) and an automated local timestamp.
+
+MODULE 3: ANTI-CORRUPTION LEDGER (IMMUTABLE AUDITING)
+--------------------------------------------------------------------------------
+FR-LDG-01: Append-Only Data Restriction
+The system must completely block users from deleting assets from the database. 
+All assets can only be updated or flagged with a different operational status.
+
+FR-LDG-02: Structural Change History Log
+Any modification made to an asset row must automatically record a history entry 
+capturing the old data, the new data, the specific user's ID, their network IP 
+address, and their device type.
+
+FR-LDG-03: Mandatory Document Justification
+The backend system must automatically block any user trying to change an asset's 
+status to "Scrapped" or "Written Off" unless they upload an official PDF report 
+or photo proof to justify the action.
+
+MODULE 4: QR CODE GENERATOR (PHYSICAL-DIGITAL INTEGRATION)
+--------------------------------------------------------------------------------
+FR-QR-01: Low-Density Printed Code Labels
+The system must generate highly simplified, short URL tracking links to keep the 
+printed QR patterns clean and low-density. This ensures they scan successfully 
+under bad lighting or on low-end smartphone cameras.
+
+FR-QR-02: Dual Traffic Routing Interface
+The system must process tag scans based on who is scanning:
+- If scanned by a logged-in Field Agent: Instantly opens the operational check form.
+- If scanned by the General Public: Opens a clean, read-only webpage verifying 
+  that the item is legitimate, registered government property.
+
+MODULE 5: ALERT & PREVENTIVE MAINTENANCE ENGINE
+--------------------------------------------------------------------------------
+FR-ALRT-01: Time-Elapsed Inspection Flags
+An automated nightly system routine must scan the database and trigger a warning 
+flag for any critical asset that has not received a physical field inspection 
+within 90 calendar days.
+
+FR-ALRT-02: Geographic Drift Anomaly Detection
+The system must automatically calculate the distance between a field worker's 
+submitted mobile GPS coordinates and the asset's registered home coordinates. 
+If the worker scans the tag more than 2.0 kilometers away from where the asset 
+is legally supposed to be, an auto-fraud alert must be flagged.
+
+
+3.5 PROVISIONING & ACCESS CONTROL (INVITE-ONLY)
+--------------------------------------------------------------------------------
+3.5.1 Closed System Access
+- The system operates as a closed, invite-only platform.
+- New users cannot self-register.
+- User accounts must be created through an administrative provisioning workflow.
+
+3.5.2 Invitation Workflow
+- An authorized user (Logistics Officer or System Administrator) initiates a new user invitation.
+- The inviter specifies the new user's role, department, and contact information.
+- An invitation email is automatically generated and sent to the invitee.
+
+3.5.3 Email Invitation
+- The invitation email contains a secure, time-limited link (24-hour expiration).
+- The link points to a secure provisioning portal.
+- The email includes instructions for completing account setup.
+
+3.5.4 Account Provisioning
+- The invitee clicks the link and is directed to a secure provisioning form.
+- The invitee creates their own username and strong password (minimum 12 characters, mixed case, numbers, symbols).
+- The invitee must verify their identity using a government-issued ID number or organizational badge number.
+- Upon successful completion, the account is activated and the user can log in.
+
+3.5.5 Session Management
+- User sessions expire after 30 minutes of inactivity.
+- Concurrent sessions are limited to 2 active sessions per user.
+- Login attempts are rate-limited: 5 failed attempts triggers a 15-minute lockout.
+
+3.5.6 Administrative Account Management
+- Logistics Officers can deactivate accounts (temporarily disable access).
+- Full account deletion requires Executive approval and audit trail documentation.
+- Password resets require administrator verification via phone call or in-person verification.
+
+3.5.7 Future-Proofing for MFA
+- The system architecture must support optional MFA without requiring it at login.
+- When MFA is enabled by the user (if device capabilities permit), the following methods are supported:
+  - **Time-based One-Time Password (TOTP)** via authenticator apps (Authy, Google Authenticator, etc.)
+  - **SMS-based OTP** delivered to the registered phone number
+  - **Email-based OTP** as a fallback for users without reliable SMS
+- MFA enrollment is optional during provisioning and can be enabled later from user settings.
+- Accounts with MFA enabled cannot disable it without administrator approval.
+
+4. NON-FUNCTIONAL REQUIREMENTS
+--------------------------------------------------------------------------------
+4.1 System Security
+- All user workspaces must be protected behind unique login sessions.
+- Data edits and form submissions must be securely stamped with the active user's credentials.
+
+4.2 Operational Performance
+- Core database lookups must be heavily optimized to keep page load times under 2 
+  seconds, even on a basic shared hosting server.
+- Mobile image uploads must be automatically compressed before transmission to 
+  prevent field workers from exhausting their mobile data plans.
+
+4.3 Interface Localization
+- While the engineering spec remains in English for development, the final system 
+  typography, buttons, titles, and printable data sheets must be displayed 
+  entirely in standard French for regional administrative compliance.
+================================================================================
+================================================================================
+          CRITICAL REQUIREMENT SOLUTIONS & TECHNICAL DEFINITIONS
+================================================================================
+Document Focus: Target Specifications to Resolve Kiro Validator Flags
+Target Architecture: Angular (PWA) | PHP (Backend API) | MySQL 8.0+ (Datastore)
+================================================================================
+
+1. ASSET DATA MODEL SPECIFICATIONS
+--------------------------------------------------------------------------------
+1.1 Core Asset Attributes
+Every registered asset record within the system database must explicitly track
+the following system fields:
+- Asset ID: Auto-incrementing internal system primary key integer.
+- Unique State ID (Serial Number): Alphanumeric code assigned during onboarding.
+- Name/Title: Standard descriptive name string.
+- Description: Multi-line text block for engineering and procurement specs.
+- Category ID: Relational foreign key binding the asset to its taxonomy tree.
+- Location (Registered/Base): Text description of the facility where it is stationed.
+- Coordinates: Latitude and Longitude fractional coordinates (WGS 84 format).
+- Spatial Point: Native MySQL geometry point data object mapped from coordinates.
+- Acquisition Date: Calendar date stamp recording physical receipt (YYYY-MM-DD).
+- Purchase Value: Decimal number storing original acquisition cost in USD.
+- Current Value: Computed monetary field tracking live value after depreciation formulas.
+- Current Status: Strict system enumeration token matching active field health.
+
+1.2 Categories & Hierarchy Structure
+The application taxonomy must enforce a strict, 3-tier tree system:
+[Level 1: General Category] ➔ [Level 2: Asset Group] ➔ [Level 3: Asset Type]
+Example: [Fleet] ➔ [Heavy Vehicles] ➔ [Ambulance]
+
+1.3 Relationship Between Assets (Parent/Child)
+Implemented via a self-referencing structural foreign key (parent_asset_id). 
+This permits complex compound parent assets (e.g., a Water Micro-Plant facility) 
+to link and manage multiple independent child sub-assets (e.g., a Water Pump, 
+Solar Inverter array, Diesel Generator) that retain their own individual QR 
+tracking tags, asset conditions, and maintenance lifecycles.
+
+2. INSPECTION WORKFLOW DETAILS
+--------------------------------------------------------------------------------
+2.1 Fields Captured During Field Inspection
+During an on-site field verification loop, the Field Agent mobile interface must 
+capture and transmit exactly six attributes:
+1. Asset Verification ID (Decrypted instantly via camera-based QR code scan telemetry).
+2. Inspection Type Selection (System token dropdown selection).
+3. Condition Status Update (System token dropdown selection).
+4. Field Notes (Short text entry box for observational field comments).
+5. Verification Image/Document (Binary upload captured via device camera).
+6. Device Telemetry: Hardware GPS Latitude/Longitude and automated Sync Timestamp.
+
+2.2 Categorization of Inspection Types
+Audits must explicitly register under one of four unique system tokens:
+1. Routine: Standard scheduled cyclical inspection loop.
+2. Breakdown: Agent dispatched specifically to investigate a reported system failure.
+3. Maintenance: Follow-up log tracking verification of repair completion.
+4. Handover: Audit logging a legal change of physical asset custodianship.
+
+2.3 Available Asset Statuses
+Assets are restricted globally to a 4-state system enumeration:
+1. Fonctionnel: Working normally; full performance capability.
+2. En Panne: Broken down; non-operational structural or mechanical failure.
+3. Déclassé: Scrapped/Written off; permanently retired from public accounts.
+4. Inconnu: Unverified/Missing; missing tracking loops past defined limits.
+
+3. GEO-FENCING & LOCATION RULES
+--------------------------------------------------------------------------------
+3.1 GPS Format & Accuracy Requirements
+All telemetry coordinates must use standard WGS 84 decimal degree formatting. 
+The mobile Progressive Web App (PWA) must actively block form submission until 
+browser high-accuracy location APIs settle under an accuracy precision buffer 
+of 15 meters.
+
+3.2 The 2.0km Drift Calculation Formula
+The PHP backend API must calculate the absolute physical distance between 
+incoming mobile inspection GPS points and the asset's registered base location 
+coordinates via the mathematical Haversine equation:
+d = 2R * asin(sqrt(sin²(Δlat/2) + cos(lat1) * cos(lat2) * sin²(Δlon/2)))
+(Where R is the radius of the Earth, 6371 kilometers).
+
+3.3 Drift Breach Protocol
+If the resolved calculation returns a distance greater than 2.0 kilometers, the 
+backend framework must trigger three separate security events:
+1. Force-write a high-priority "Location Drift Anomaly" directly to the Anti-Corruption Ledger.
+2. Flash an urgent red tracking warning on the Governor/Minister Executive Dashboard.
+3. Divert the status update to a "Pending Forensic Clearance" state until reviewed and authorized by an Auditor.
+
+4. DOCUMENT UPLOAD SYSTEM RULES
+--------------------------------------------------------------------------------
+4.1 Accepted File Formats
+The file storage engine must accept image formats (.jpg, .jpeg, .png) for Field 
+Agents logging conditions, and documentation payloads (.pdf, .docx) for 
+Administrative Officers logging adjustments.
+
+4.2 Maximum File Size Parameters
+File capacities are explicitly restricted at the API gateway layer to:
+- Field Mobile Uploads: Capped at 800 KB per photo (enforced via client-side 
+  Angular scale compression).
+- Desktop Administrative Uploads: Capped at 5.0 MB per document.
+
+4.3 Asset and Change Linkage Architecture
+Uploaded files are written to partitioned directories on the storage volume. 
+The structural file path is stored as an alphanumeric string in a dedicated 
+attachments index table, linked directly via foreign keys to the primary 
+Asset ID, the active User ID, and the explicit inspection_log_id or ledger_event_id.
+
+5. REPORTING & EXPORT ENGINE REQUIREMENTS
+--------------------------------------------------------------------------------
+5.1 Export Formats
+Users must be able to export structured database views into three layouts:
+- PDF: Formatted as unmodifiable templates designed for official signature processing.
+- Excel (.xlsx): Organized as rows of numbers for detailed accounting calculations.
+- CSV: Comma-delimited data dumps for raw file sharing and rapid system transfers.
+
+5.2 Custom Report Builder Parameters
+To maximize execution efficiency on shared hosting, users can compile filtered 
+data reports choosing exactly three straightforward variables: 
+[Target Department/Ministry] + [Asset Status Selection] + [Specific Date Range Window]
+
+5.3 System Notification Preferences
+- High-Priority Breaches (Geographic drift or unauthorized records) must throw 
+  an instantaneous visual red banner warning directly inside the active Angular 
+  user layout.
+- Standard Routine Flags (Maintenance schedules) must be batched by a nightly 
+  PHP job and delivered as a single combined email digest to supervisors every 
+  morning.
+
+6. DEPLOYMENT & HOSTING METRICS
+--------------------------------------------------------------------------------
+6.1 Shared Hosting Constraints (Phase 1: Staging/Demo)
+- Runtime Baseline: PHP 8.2 or higher required.
+- Database Baseline: MySQL 8.0 or higher required (necessary for native spatial 
+  geometry point and index datatypes).
+- Memory & Execution: Minimum post_max_size 16MB, upload_max_filesize 8MB, 
+  max_execution_time 30 seconds.
+- Storage Limit Capacity: Capped at 10GB shared SSD storage pool allocation.
+
+6.2 Dedicated Server Specifications (Phase 2: Production Lift-and-Shift)
+- Compute Allocation: Minimum 8-Core Dedicated vCPUs, 32GB ECC RAM configuration.
+- Storage Array: 500GB Enterprise NVMe SSD deployment (RAID-1 mirror structure).
+- OS Platform Stack: Ubuntu Server 22.04 LTS running Nginx with PHP-FPM proxies.
+
+6.3 Backup & Disaster Recovery Architecture
+- Automated Database Snapshots: Shell cron routines must dump an encrypted 
+  database snapshot (mysqldump) every 24 hours at 01:00 UTC.
+- Asset File Backups: Media subdirectory repositories must perform differential 
+  synchronization loops every 24 hours.
+- Target Retention Window: Local daily snapshots follow a rolling 14-day 
+  retention window, with monthly archival snapshots pushed to an isolated 
+  internal storage node and retained for 12 calendar months.
+================================================================================
+
+3.8 INCIDENT & BREAKDOWN OPERATIONAL WORKFLOW
+--------------------------------------------------------------------------------
+Every mechanical or structural asset failure (e.g., streetlights, vehicles, generators)
+must traverse a strict, closed-loop lifecycle across the stack:
+
+1. INCIDENT LOGGING FRAMEWORK (FR-TRK-05)
+- Action: The reporter scans the asset's physical QR tag via the mobile PWA camera.
+- Constraints: The system requires an image upload of the defect (max 800KB) and a 
+  selection from the enumerated status options: 'En Panne' (Broken Down).
+- Datastore: PHP intercepts the payload, logs an entry in the inspection table, 
+  and forces the core asset 'current_status' to 'En Panne'.
+
+2. DASHBOARD ORCHESTRATION LAYER (FR-DASH-04)
+- Action: The visual Leaflet.js dashboard must intercept the status update without 
+  requiring a full page refresh.
+- UI Behavior: The asset map pin must immediately change to Red. The header telemetry 
+  card for 'Capital at Risk' must mathematically recalculate and increase by the 
+  asset's 'Current Value' metric.
+
+3. LOGISTICS DISPATCH & WORK ASSIGNMENT (FR-AUTH-05)
+- Action: An administrative user (Logistics Officer) selects the active red alert, 
+  assigns a specific Field Agent User ID, and submits a dispatch action.
+- UI Behavior: The task payload is instantly removed from the global queue and 
+  populated directly onto the assigned Field Agent's mobile PWA checklist.
+
+4. TARGET REPAIR VALIDATION ENGINE (FR-ALRT-03)
+- Action: Upon physical repair completion, the Field Agent must rescan the physical 
+  QR code tag on-site, select 'Maintenance' as the inspection type, and upload proof media.
+- Verification: The PHP backend executes the Haversine equation matching the hardware 
+  GPS capture. If the computed distance d > 2.0 kilometers from the asset's registered 
+  coordinate base, the system executes the breach protocol and blocks the database save.
+
+5. FORENSIC RESOLUTION CLOSURE (FR-LDG-04)
+- Action: If the Haversine calculation clears, the state updates to 'Fonctionnel'.
+- Audit: The Anti-Corruption Ledger writes a permanent, unalterable history log string: 
+  "Asset ID [X] status reverted to Fonctionnel by User ID [Y]. Spatial telemetry verified."
+- UI Behavior: The dashboard map pin reverts to Green, and the asset value is removed 
+  from the executive 'Capital at Risk' tracking cards.
+================================================================================
+3.9 ASSET ONBOARDING MODULE
+--------------------------------------------------------------------------------
+Before assets can be tracked or managed through incident workflows, they must be
+registered into the system with unique identification and physical tags:
+
+1. ASSET REGISTRATION WORKFLOW (FR-TRK-06)
+- Action: A Logistics Officer initiates asset onboarding via the desktop interface.
+- Constraints: The system generates a unique alphanumeric State ID following format: [PREFIX]-[6 DIGITS] (e.g., FLEET-000123).
+- Datastore: All required asset metadata is stored including Name/Title, Description, Category ID (3-tier hierarchy), Registered Location, GPS Coordinates (WGS 84), Acquisition Date, Purchase Value, and Current Status (initially 'Fonctionnel').
+
+2. CATEGORY HIERARCHY ENFORCEMENT (FR-CAT-01)
+- Action: During onboarding, the system enforces a strict 3-tier tree structure.
+- UI Behavior: The category selector must cascade through: General Category → Asset Group → Asset Type.
+- Example: [Fleet] ➔ [Heavy Vehicles] ➔ [Ambulance].
+- Validation: Users cannot skip tiers or create assets without a complete category path.
+
+3. SPATIAL POINT GENERATION (FR-SPAT-01)
+- Action: When GPS coordinates are entered, the system validates WGS 84 format and generates the MySQL Spatial Point.
+- Validation: Latitude must be between -90 and +90 degrees, Longitude between -180 and +180 degrees.
+- Storage: The location_point column uses MySQL native POINT geometry type with SPATIAL INDEX.
+
+4. PARENT-CHILD RELATIONSHIP SUPPORT (FR-REL-01)
+- Action: The system accepts self-referencing parent_asset_id to create compound assets.
+- Example: A Water Micro-Plant facility can link multiple child sub-assets (Water Pump, Solar Inverter, Diesel Generator).
+- UI Behavior: Each child retains its own individual QR tracking tag, asset conditions, and maintenance lifecycles.
+
+5. QR CODE GENERATION (FR-QR-03)
+- Action: Upon asset save, the system generates a low-density QR code label.
+- Constraints: QR must use a simplified short URL pattern optimized for low-end smartphone cameras.
+- Output: The QR code shall contain only the asset State ID (not financial or sensitive data) for security and scan reliability.
+- Print Templates: Enable print-ready tag templates including State ID, Asset Name, Category, and QR code.
+
+6. MULTIPLE QR GENERATION FOR COMPOUND ASSETS (FR-QR-04)
+- Action: Where an asset has children, the system generates individual QR codes for each child sub-asset.
+- UI Behavior: The interface maintains parent-child relationship visibility while generating separate tags for each child.
+- Validation: Each child QR code must be scannable independently and resolve to the correct asset record.
+
+================================================================================
