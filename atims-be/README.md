@@ -1,187 +1,58 @@
-# ATIMS Backend API
+<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
 
-Asset Tracking and Inventory Management System - PHP Backend
+<p align="center">
+<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
+<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
+<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
+<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
+</p>
 
-## Prerequisites
+## About Laravel
 
-- PHP 8.2 or higher
-- MySQL 8.0+ with spatial data support
-- Composer (for dependency management)
-- Apache/Nginx with mod_rewrite enabled
-- GD extension for image processing
+Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
 
-## Installation
+- [Simple, fast routing engine](https://laravel.com/docs/routing).
+- [Powerful dependency injection container](https://laravel.com/docs/container).
+- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
+- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
+- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
+- [Robust background job processing](https://laravel.com/docs/queues).
+- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
 
-### 1. Database Setup
+Laravel is accessible, powerful, and provides tools required for large, robust applications.
 
-1. Create MySQL database:
-   ```sql
-   CREATE DATABASE atims;
-   ```
+## Learning Laravel
 
-2. Import the schema:
-   ```bash
-   mysql -u root -p atims < ../database/schema.sql
-   ```
+Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
 
-### 2. Backend Setup
+In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
 
-1. Navigate to the backend directory:
-   ```bash
-   cd atims-be
-   ```
+You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
 
-2. Install dependencies:
-   ```bash
-   composer install
-   ```
+## Agentic Development
 
-3. Configure environment:
-   ```bash
-   cp .env.example .env
-   ```
-   
-   Edit `.env` and configure your settings:
-   ```
-   APP_ENV=development
-   APP_DEBUG=true
-   DB_HOST=localhost
-   DB_PORT=3306
-   DB_NAME=atims
-   DB_USER=root
-   DB_PASSWORD=
-   JWT_SECRET=your-secret-key-change-in-production
-   ```
+Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
 
-4. Ensure storage directories are writable:
-   ```bash
-   chmod -R 775 storage/
-   ```
-
-### 3. XAMPP Setup
-
-1. Copy the `atims-be` folder to `C:\xampp\htdocs\atims\atims-be`
-
-2. Ensure Apache has mod_rewrite enabled:
-   - Open `C:\xampp\apache\conf\httpd.conf`
-   - Uncomment: `LoadModule rewrite_module modules/mod_rewrite.so`
-
-3. Start XAMPP Apache server
-
-4. Access the API at: `http://localhost/atims-be/`
-
-## API Documentation
-
-### Swagger UI
-
-API documentation is available at:
-- **Development**: `http://localhost/atims-be/swagger/`
-
-The Swagger UI provides:
-- Interactive API documentation
-- Try-it-out functionality for testing endpoints
-- Request/response examples
-
-## API Endpoints
-
-### Health Check
-- `GET /health` - Check API and database status
-
-### Authentication
-- `POST /auth/login` - User login
-- `POST /auth/register` - User registration
-- `GET /auth/profile` - Get user profile (requires authentication)
-
-### Assets
-- `GET /assets` - List all assets
-- `POST /assets` - Create new asset
-- `GET /assets/{id}` - Get asset details
-- `PUT /assets/{id}` - Update asset
-- `DELETE /assets/{id}` - Delete asset
-
-### Inspections
-- `GET /inspections` - List inspections
-- `POST /inspections` - Create inspection
-
-### Incidents
-- `POST /incidents/log` - Log incident
-- `GET /incidents/unresolved` - Get unresolved incidents
-
-### Dashboard
-- `GET /dashboards/kpi` - Get KPIs
-- `GET /dashboards/map-pins` - Get map pins
-
-## Configuration
-
-### Database
-
-The database connection is configured in `.env`:
-```
-DB_HOST=localhost
-DB_PORT=3306
-DB_NAME=atims
-DB_USER=root
-DB_PASSWORD=
-```
-
-### Security
-
-- JWT tokens for authentication
-- Environment-based configuration
-- HTTPS recommended for production
-
-## Project Structure
-
-```
-atims-be/
-├── config/           # Configuration files
-├── src/
-│   ├── Core/         # Core classes
-│   ├── Controllers/  # API controllers
-│   ├── Middleware/   # Request middleware
-│   └── Services/     # Business logic services
-├── storage/
-│   ├── logs/         # Application logs
-│   └── uploads/      # File uploads
-├── swagger/          # API documentation
-├── vendor/           # Composer dependencies
-├── .htaccess         # Apache configuration
-├── composer.json     # Dependencies
-└── index.php         # Entry point
-```
-
-## Development
-
-### Running Tests
 ```bash
-composer test
+composer require laravel/boost --dev
+
+php artisan boost:install
 ```
 
-### Code Analysis
-```bash
-composer stan
-```
+Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
 
-### Code Fixing
-```bash
-composer fix
-```
+## Contributing
 
-## Troubleshooting
+Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
 
-### 404 Errors
-- Ensure mod_rewrite is enabled in Apache
-- Check `.htaccess` is being read
+## Code of Conduct
 
-### Database Connection Errors
-- Verify database credentials in `.env`
-- Ensure MySQL service is running
-- Check database exists and schema is imported
+In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
 
-### CORS Errors
-- Verify CORS headers in `.htaccess`
-- Check `APP_URL` in `.env`
+## Security Vulnerabilities
 
-## Support
+If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
 
-For issues or questions, contact: support@atims.local
+## License
+
+The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).

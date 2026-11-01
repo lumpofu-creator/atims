@@ -73,7 +73,7 @@ CREATE TABLE IF NOT EXISTS assets (
     registered_location VARCHAR(255),
     latitude DECIMAL(10,8),
     longitude DECIMAL(11,8),
-    location_point POINT NOT NULL SRID 4326,
+    location_point POINT NOT NULL,
     acquisition_date DATE,
     purchase_value DECIMAL(15,2),
     current_value DECIMAL(15,2),
@@ -199,7 +199,6 @@ CREATE TABLE IF NOT EXISTS task_queues (
     
     -- Indexes for efficient queue lookups
     INDEX idx_tasks_assigned_user (assigned_user_id, status),
-    INDEX idx_tasks_global_queue (global_queue_order) WHERE global_queue_order IS NOT NULL,
     INDEX idx_tasks_asset (asset_id),
     INDEX idx_tasks_inspection (inspection_id),
     INDEX idx_tasks_status (status),
@@ -300,28 +299,33 @@ CREATE TABLE IF NOT EXISTS audit_log (
 -- ============================================================================
 
 -- Default categories (3-tier hierarchy)
+-- First, insert general categories (parent_id = NULL)
 INSERT INTO categories (name, code, description, tier, parent_id) VALUES
--- General Categories
 ('Fleet', 'FL', 'Vehicle fleet assets', 'general', NULL),
 ('Office Equipment', 'OE', 'Office and computing equipment', 'general', NULL),
 ('Infrastructure', 'IF', 'Public infrastructure', 'general', NULL),
-('Furniture', 'FT', 'Office furniture and fixtures', 'general', NULL),
+('Furniture', 'FT', 'Office furniture and fixtures', 'general', NULL);
 
--- Asset Groups
-('Cars', 'CAR', 'Passenger vehicles', 'group', (SELECT id FROM categories WHERE code = 'FL')),
-('Trucks', 'TRK', 'Commercial vehicles', 'group', (SELECT id FROM categories WHERE code = 'FL')),
-('Computers', 'CMP', 'Desktops and laptops', 'group', (SELECT id FROM categories WHERE code = 'OE')),
-('Network Equipment', 'NET', 'Networking hardware', 'group', (SELECT id FROM categories WHERE code = 'OE')),
+-- Insert asset groups (need parent_id from general categories)
+-- General categories are inserted in order, so we can use their order IDs
+-- FL=1, OE=2, IF=3, FT=4 (based on insertion order)
+INSERT INTO categories (name, code, description, tier, parent_id) VALUES
+('Cars', 'CAR', 'Passenger vehicles', 'group', 1),
+('Trucks', 'TRK', 'Commercial vehicles', 'group', 1),
+('Computers', 'CMP', 'Desktops and laptops', 'group', 2),
+('Network Equipment', 'NET', 'Networking hardware', 'group', 2);
 
--- Asset Types
-('Sedan', 'SDL', 'Sedan passenger car', 'type', (SELECT id FROM categories WHERE code = 'CAR')),
-('SUV', 'SUV', 'Sport utility vehicle', 'type', (SELECT id FROM categories WHERE code = 'CAR')),
-('Pickup', 'PCK', 'Pickup truck', 'type', (SELECT id FROM categories WHERE code = 'TRK')),
-('Van', 'VAN', 'Cargo van', 'type', (SELECT id FROM categories WHERE code = 'TRK')),
-('Desktop', 'DTP', 'Desktop computer', 'type', (SELECT id FROM categories WHERE code = 'CMP')),
-('Laptop', 'LPT', 'Laptop computer', 'type', (SELECT id FROM categories WHERE code = 'CMP')),
-('Switch', 'SWT', 'Network switch', 'type', (SELECT id FROM categories WHERE code = 'NET')),
-('Router', 'RTR', 'Network router', 'type', (SELECT id FROM categories WHERE code = 'NET'));
+-- Insert asset types (need parent_id from group categories)
+-- Cars=5, Trucks=6, Computers=7, Network Equipment=8
+INSERT INTO categories (name, code, description, tier, parent_id) VALUES
+('Sedan', 'SDL', 'Sedan passenger car', 'type', 5),
+('SUV', 'SUV', 'Sport utility vehicle', 'type', 5),
+('Pickup', 'PCK', 'Pickup truck', 'type', 6),
+('Van', 'VAN', 'Cargo van', 'type', 6),
+('Desktop', 'DTP', 'Desktop computer', 'type', 7),
+('Laptop', 'LPT', 'Laptop computer', 'type', 7),
+('Switch', 'SWT', 'Network switch', 'type', 8),
+('Router', 'RTR', 'Network router', 'type', 8);
 
 -- Default user roles data (seed data for testing)
 INSERT INTO users (username, email, password_hash, role, first_name, last_name, mfa_enabled) VALUES
@@ -331,33 +335,30 @@ INSERT INTO users (username, email, password_hash, role, first_name, last_name, 
 ('admin_executive', 'admin.executive@example.com', '$2y$10$examplehash4', 'Executive', 'Executive', 'Admin', 0);
 
 -- Sample assets with spatial data (using ST_PointFromText for MySQL geometry)
+-- Category IDs: SDL=5, VAN=6, DTP=7, SWT=8
 INSERT INTO assets (state_id, name, description, category_id, registered_location, latitude, longitude, location_point, acquisition_date, purchase_value, current_value, current_status, created_by) VALUES
-('FLEET-000001', 'Toyota Camry Sedan', 'Fleet vehicle for administrative transport', 
- (SELECT id FROM categories WHERE code = 'SDL'), 
+('FLEET-000001', 'Toyota Camry Sedan', 'Fleet vehicle for administrative transport', 5, 
  'Ministry of Finance, 123 Central Avenue, Paris',
  48.8566, 2.3522,
- ST_PointFromText('POINT(2.3522 48.8566)', 4326),
+ ST_PointFromText('POINT(2.3522 48.8566)'),
  '2022-03-15', 35000.00, 30000.00, 'Fonctionnel', 1),
 
-('FLEET-000002', 'Mercedes Sprinter Van', 'Cargo transport vehicle', 
- (SELECT id FROM categories WHERE code = 'VAN'), 
+('FLEET-000002', 'Mercedes Sprinter Van', 'Cargo transport vehicle', 6, 
  'Central Warehouse, 456 Industrial Zone, Lyon',
  45.7640, 4.8357,
- ST_PointFromText('POINT(4.8357 45.7640)', 4326),
+ ST_PointFromText('POINT(4.8357 45.7640)'),
  '2021-08-20', 45000.00, 40000.00, 'En Panne', 1),
 
-('OE-000001', 'Dell Precision Desktop', 'High-performance workstation for accounting', 
- (SELECT id FROM categories WHERE code = 'DTP'), 
+('OE-000001', 'Dell Precision Desktop', 'High-performance workstation for accounting', 7, 
  'Finance Department, Floor 2, Office 201',
  48.8568, 2.3524,
- ST_PointFromText('POINT(2.3524 48.8568)', 4326),
+ ST_PointFromText('POINT(2.3524 48.8568)'),
  '2023-01-10', 2500.00, 2200.00, 'Fonctionnel', 1),
 
-('INFRA-000001', 'Street Lighting System', 'LED street lighting installation', 
- (SELECT id FROM categories WHERE code = 'SWT'), 
+('INFRA-000001', 'Street Lighting System', 'LED street lighting installation', 8, 
  'Place de la Concorde, Paris',
  48.8636, 2.3249,
- ST_PointFromText('POINT(2.3249 48.8636)', 4326),
+ ST_PointFromText('POINT(2.3249 48.8636)'),
  '2020-06-01', 150000.00, 140000.00, 'Fonctionnel', 1);
 
 -- Sample inspection records

@@ -1,0 +1,919 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "ATIMS Laravel API Documentation",
+        "description": "This is the auto-generated Swagger API documentation for ATIMS.",
+        "version": "1.0.0"
+    },
+    "servers": [
+        {
+            "url": "http://localhost:8000",
+            "description": "Local Development Environment"
+        }
+    ],
+    "paths": {
+        "/api/assets": {
+            "get": {
+                "tags": [
+                    "Assets"
+                ],
+                "summary": "List all assets",
+                "description": "Returns a paginated list of assets",
+                "operationId": "50c726a8d4ee77df00ce287ce38f08e7",
+                "parameters": [
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 1
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 20
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List of assets",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "items": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "properties": {
+                                                            "id": {
+                                                                "type": "integer"
+                                                            },
+                                                            "name": {
+                                                                "type": "string"
+                                                            },
+                                                            "state_id": {
+                                                                "type": "string"
+                                                            },
+                                                            "current_status": {
+                                                                "type": "string",
+                                                                "enum": [
+                                                                    "Fonctionnel",
+                                                                    "En Panne",
+                                                                    "Déclassé",
+                                                                    "Inconnu"
+                                                                ]
+                                                            },
+                                                            "latitude": {
+                                                                "type": "number"
+                                                            },
+                                                            "longitude": {
+                                                                "type": "number"
+                                                            },
+                                                            "category_id": {
+                                                                "type": "integer"
+                                                            }
+                                                        },
+                                                        "type": "object"
+                                                    }
+                                                },
+                                                "pagination": {
+                                                    "properties": {
+                                                        "total": {
+                                                            "type": "integer",
+                                                            "example": 10
+                                                        },
+                                                        "page": {
+                                                            "type": "integer",
+                                                            "example": 1
+                                                        },
+                                                        "limit": {
+                                                            "type": "integer",
+                                                            "example": 20
+                                                        },
+                                                        "total_pages": {
+                                                            "type": "integer",
+                                                            "example": 1
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Assets"
+                ],
+                "summary": "Create a new asset",
+                "description": "Creates a new asset in the system",
+                "operationId": "5f044bcc586b0942143ae0541308a29f",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "name",
+                                    "category_id",
+                                    "latitude",
+                                    "longitude",
+                                    "current_status"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "example": "Generator Set"
+                                    },
+                                    "category_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "latitude": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "example": -17.8255
+                                    },
+                                    "longitude": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "example": 31.0539
+                                    },
+                                    "current_status": {
+                                        "type": "string",
+                                        "example": "Fonctionnel",
+                                        "enum": [
+                                            "Fonctionnel",
+                                            "En Panne",
+                                            "Déclassé",
+                                            "Inconnu"
+                                        ]
+                                    },
+                                    "state_id": {
+                                        "type": "string",
+                                        "example": "ASSET-001",
+                                        "nullable": true
+                                    },
+                                    "description": {
+                                        "type": "string",
+                                        "example": "Main generator set",
+                                        "nullable": true
+                                    },
+                                    "registered_location": {
+                                        "type": "string",
+                                        "example": "Head Office",
+                                        "nullable": true
+                                    },
+                                    "acquisition_date": {
+                                        "type": "string",
+                                        "format": "date",
+                                        "example": "2024-01-15",
+                                        "nullable": true
+                                    },
+                                    "purchase_value": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "example": 50000,
+                                        "nullable": true
+                                    },
+                                    "current_value": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "example": 45000,
+                                        "nullable": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Asset created successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Asset created successfully"
+                                        },
+                                        "id": {
+                                            "type": "integer",
+                                            "example": 1
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Validation error"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/assets/{asset}": {
+            "get": {
+                "tags": [
+                    "Assets"
+                ],
+                "summary": "Get asset by ID",
+                "description": "Returns a specific asset by its ID",
+                "operationId": "d33f5b3852d410de00f34579415803ea",
+                "parameters": [
+                    {
+                        "name": "asset",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Asset details",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer",
+                                                    "example": 1
+                                                },
+                                                "name": {
+                                                    "type": "string",
+                                                    "example": "Generator Set"
+                                                },
+                                                "state_id": {
+                                                    "type": "string",
+                                                    "example": "ASSET-001"
+                                                },
+                                                "current_status": {
+                                                    "type": "string",
+                                                    "example": "Fonctionnel"
+                                                },
+                                                "latitude": {
+                                                    "type": "number",
+                                                    "example": -17.8255
+                                                },
+                                                "longitude": {
+                                                    "type": "number",
+                                                    "example": 31.0539
+                                                },
+                                                "category_id": {
+                                                    "type": "integer",
+                                                    "example": 1
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Asset not found"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Assets"
+                ],
+                "summary": "Update asset",
+                "description": "Updates an existing asset",
+                "operationId": "762b28765aa91ab4eeceaeb37ea2c4ee",
+                "parameters": [
+                    {
+                        "name": "asset",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "example": "Updated Generator Set"
+                                    },
+                                    "current_status": {
+                                        "type": "string",
+                                        "example": "En Panne",
+                                        "enum": [
+                                            "Fonctionnel",
+                                            "En Panne",
+                                            "Déclassé",
+                                            "Inconnu"
+                                        ]
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Asset updated successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "message": {
+                                                    "type": "string",
+                                                    "example": "Asset updated successfully"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Asset not found"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Assets"
+                ],
+                "summary": "Delete asset",
+                "description": "Deletes an asset from the system",
+                "operationId": "2a914ba0b6a5eaf5b052ebd0ca7f7c9d",
+                "parameters": [
+                    {
+                        "name": "asset",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Asset deleted successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "message": {
+                                                    "type": "string",
+                                                    "example": "Asset deleted successfully"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Asset not found"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/auth/login": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Login user and return authentication token",
+                "description": "Authenticate user with username and password, returns JWT token",
+                "operationId": "dd51a484b7fa0f97c7680fdbde14cf5f",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "username",
+                                    "password"
+                                ],
+                                "properties": {
+                                    "username": {
+                                        "type": "string",
+                                        "example": "admin"
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "example": "password123"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful login",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "token": {
+                                                    "type": "string",
+                                                    "example": "fake-jwt-token"
+                                                },
+                                                "expires_at": {
+                                                    "type": "string",
+                                                    "example": "2026-11-02 10:00:00"
+                                                },
+                                                "user": {
+                                                    "properties": {
+                                                        "id": {
+                                                            "type": "integer",
+                                                            "example": 1
+                                                        },
+                                                        "username": {
+                                                            "type": "string",
+                                                            "example": "admin"
+                                                        },
+                                                        "email": {
+                                                            "type": "string",
+                                                            "example": "admin@example.com"
+                                                        },
+                                                        "role": {
+                                                            "type": "string",
+                                                            "example": "admin"
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Invalid credentials",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "error": {
+                                            "type": "string",
+                                            "example": "Unauthorized"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/auth/logout": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Logout user and invalidate token",
+                "description": "Revoke user authentication token",
+                "operationId": "df9bdc6c7a6d9f20b983526b2ec0f698",
+                "responses": {
+                    "200": {
+                        "description": "Successfully logged out",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "message": {
+                                                    "type": "string",
+                                                    "example": "Logged out successfully"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/auth/me": {
+            "get": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Get current authenticated user",
+                "description": "Returns the authenticated user details",
+                "operationId": "b5de204f5e452ef51327c691aa99e77c",
+                "responses": {
+                    "200": {
+                        "description": "User details",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer",
+                                                    "example": 1
+                                                },
+                                                "username": {
+                                                    "type": "string",
+                                                    "example": "admin"
+                                                },
+                                                "email": {
+                                                    "type": "string",
+                                                    "example": "admin@example.com"
+                                                },
+                                                "role": {
+                                                    "type": "string",
+                                                    "example": "admin"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/health": {
+            "get": {
+                "tags": [
+                    "Health"
+                ],
+                "summary": "Check API health status",
+                "description": "Returns the health status of the API including database connection",
+                "operationId": "e6e2f2314497f15db5bab62824711fb9",
+                "responses": {
+                    "200": {
+                        "description": "API is healthy",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "status": {
+                                                    "type": "string",
+                                                    "example": "healthy"
+                                                },
+                                                "database": {
+                                                    "type": "string",
+                                                    "example": "connected"
+                                                },
+                                                "timestamp": {
+                                                    "type": "string",
+                                                    "example": "2026-11-01 10:00:00"
+                                                },
+                                                "version": {
+                                                    "type": "string",
+                                                    "example": "1.0.0"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Database connection failed",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "error": {
+                                            "type": "string",
+                                            "example": "Service unhealthy"
+                                        },
+                                        "details": {
+                                            "properties": {
+                                                "database": {
+                                                    "type": "string",
+                                                    "example": "disconnected"
+                                                },
+                                                "error": {
+                                                    "type": "string",
+                                                    "example": "SQLSTATE[HY000] [1045] Access denied"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/qrcode/scan/{stateId}": {
+            "get": {
+                "tags": [
+                    "QR Code"
+                ],
+                "summary": "Scan QR code (for field agents)",
+                "description": "Scan a QR code for field agents. Requires authentication.",
+                "operationId": "75f2b47d778e9b858c78c32482eada42",
+                "parameters": [
+                    {
+                        "name": "stateId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "QR scan successful",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "state_id": {
+                                                    "type": "string",
+                                                    "example": "ASSET-001"
+                                                },
+                                                "type": {
+                                                    "type": "string",
+                                                    "example": "scan"
+                                                },
+                                                "scan_time": {
+                                                    "type": "string",
+                                                    "example": "2026-11-01 10:00:00"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid State ID format"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/qrcode/verify/{stateId}": {
+            "get": {
+                "tags": [
+                    "QR Code"
+                ],
+                "summary": "Verify QR code (public)",
+                "description": "Verify a QR code for public verification. No authentication required.",
+                "operationId": "d6afab6d38105c515bb8924332fd05f8",
+                "parameters": [
+                    {
+                        "name": "stateId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "QR verification successful",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "state_id": {
+                                                    "type": "string",
+                                                    "example": "ASSET-001"
+                                                },
+                                                "type": {
+                                                    "type": "string",
+                                                    "example": "verify"
+                                                },
+                                                "verified": {
+                                                    "type": "boolean",
+                                                    "example": true
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid State ID format"
+                    }
+                }
+            }
+        },
+        "/api/health-check": {
+            "get": {
+                "summary": "Check API availability status",
+                "description": "Dummy Endpoint to satisfy Swagger's requirement for at least one route.",
+                "operationId": "e2996dbfbd34faafb04a71e547c09b65",
+                "responses": {
+                    "200": {
+                        "description": "API is online and operational"
+                    }
+                }
+            }
+        }
+    },
+    "tags": [
+        {
+            "name": "Assets",
+            "description": "Assets"
+        },
+        {
+            "name": "Authentication",
+            "description": "Authentication"
+        },
+        {
+            "name": "Health",
+            "description": "Health"
+        },
+        {
+            "name": "QR Code",
+            "description": "QR Code"
+        }
+    ]
+}
