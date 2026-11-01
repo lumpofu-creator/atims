@@ -13,7 +13,16 @@ return new class extends Migration
     {
         Schema::create('ledgers', function (Blueprint $table) {
             $table->id();
-            $table->timestamps();
+            $table->enum('event_type', ['Status Change', 'Asset Update', 'Location Drift Anomaly', 'Repair Closure', 'Other']);
+            $table->string('table_name', 64);
+            $table->unsignedBigInteger('record_id');
+            $table->json('old_data')->nullable();
+            $table->json('new_data');
+            $table->foreignId('user_id')->constrained('users');
+            $table->ipAddress('ip_address')->nullable();
+            $table->string('device_type', 64)->nullable();
+            $table->json('metadata')->nullable();
+            $table->timestamp('created_at')->useCurrent();
         });
     }
 

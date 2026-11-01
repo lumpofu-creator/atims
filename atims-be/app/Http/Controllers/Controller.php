@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Foundation\Validation\ValidatesRequests;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Routing\Controller as BaseController;
 use OpenApi\Attributes as OA; // <--- Add this import
 
@@ -49,7 +50,7 @@ class Controller extends BaseController
             new OA\Response(response: 200, description: 'API is online and operational'),
         ]
     )]
-    public function healthCheck()
+    public function healthCheck(): JsonResponse
     {
         return response()->json(['status' => 'healthy']);
     }
@@ -57,30 +58,30 @@ class Controller extends BaseController
     /**
      * Success response
      */
-    protected function success(array $data, int $status = self::HTTP_OK): array
+    protected function success(mixed $data, int $status = self::HTTP_OK): JsonResponse
     {
-        return [
+        return response()->json([
             'success' => true,
             'data' => $data,
-        ];
+        ], $status);
     }
 
     /**
      * Error response
      */
-    protected function error(string $message, int $status = self::HTTP_INTERNAL_ERROR, array $details = []): array
+    protected function error(string $message, int $status = self::HTTP_INTERNAL_ERROR, array $details = []): JsonResponse
     {
-        return [
+        return response()->json([
             'success' => false,
             'error' => $message,
             'details' => $details,
-        ];
+        ], $status);
     }
 
     /**
      * Validation error response
      */
-    protected function validationError(string $message, array $errors): array
+    protected function validationError(string $message, array $errors): JsonResponse
     {
         return $this->error(
             $message,
@@ -92,7 +93,7 @@ class Controller extends BaseController
     /**
      * Not found response
      */
-    protected function notFound(string $resource, int $id): array
+    protected function notFound(string $resource, int $id): JsonResponse
     {
         return $this->error(
             "$resource not found",
@@ -104,7 +105,7 @@ class Controller extends BaseController
     /**
      * Unauthorized response
      */
-    protected function unauthorized(string $message = 'Unauthorized'): array
+    protected function unauthorized(string $message = 'Unauthorized'): JsonResponse
     {
         return $this->error($message, self::HTTP_UNAUTHORIZED);
     }
@@ -112,7 +113,7 @@ class Controller extends BaseController
     /**
      * Forbidden response
      */
-    protected function forbidden(string $message = 'Forbidden'): array
+    protected function forbidden(string $message = 'Forbidden'): JsonResponse
     {
         return $this->error($message, self::HTTP_FORBIDDEN);
     }
@@ -120,12 +121,12 @@ class Controller extends BaseController
     /**
      * Create response with location header
      */
-    protected function created(string $message, int $id): array
+    protected function created(string $message, int $id, array $data = []): JsonResponse
     {
-        return [
+        return response()->json(array_merge([
             'success' => true,
             'message' => $message,
             'id' => $id,
-        ];
+        ], $data), self::HTTP_CREATED);
     }
 }

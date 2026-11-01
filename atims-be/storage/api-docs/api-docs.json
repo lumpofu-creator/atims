@@ -18,7 +18,7 @@
                     "Assets"
                 ],
                 "summary": "List all assets",
-                "description": "Returns a paginated list of assets",
+                "description": "Returns a paginated list of assets with optional search and filtering",
                 "operationId": "50c726a8d4ee77df00ce287ce38f08e7",
                 "parameters": [
                     {
@@ -27,7 +27,8 @@
                         "required": false,
                         "schema": {
                             "type": "integer",
-                            "default": 1
+                            "default": 1,
+                            "minimum": 1
                         }
                     },
                     {
@@ -36,7 +37,39 @@
                         "required": false,
                         "schema": {
                             "type": "integer",
-                            "default": 20
+                            "default": 20,
+                            "maximum": 100,
+                            "minimum": 1
+                        }
+                    },
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "Fonctionnel",
+                                "En Panne",
+                                "Déclassé",
+                                "Inconnu"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "category_id",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer"
                         }
                     }
                 ],
@@ -60,14 +93,21 @@
                                                             "id": {
                                                                 "type": "integer"
                                                             },
-                                                            "name": {
-                                                                "type": "string"
-                                                            },
                                                             "state_id": {
-                                                                "type": "string"
+                                                                "type": "string",
+                                                                "example": "FLEET-000123"
+                                                            },
+                                                            "name": {
+                                                                "type": "string",
+                                                                "example": "Generator Set"
+                                                            },
+                                                            "description": {
+                                                                "type": "string",
+                                                                "example": "Main generator set"
                                                             },
                                                             "current_status": {
                                                                 "type": "string",
+                                                                "example": "Fonctionnel",
                                                                 "enum": [
                                                                     "Fonctionnel",
                                                                     "En Panne",
@@ -76,13 +116,24 @@
                                                                 ]
                                                             },
                                                             "latitude": {
-                                                                "type": "number"
+                                                                "type": "number",
+                                                                "example": -17.8255
                                                             },
                                                             "longitude": {
-                                                                "type": "number"
+                                                                "type": "number",
+                                                                "example": 31.0539
                                                             },
                                                             "category_id": {
-                                                                "type": "integer"
+                                                                "type": "integer",
+                                                                "example": 1
+                                                            },
+                                                            "category_name": {
+                                                                "type": "string",
+                                                                "example": "Vehicle / Fleet / Car"
+                                                            },
+                                                            "current_value": {
+                                                                "type": "number",
+                                                                "example": 45000
                                                             }
                                                         },
                                                         "type": "object"
@@ -133,7 +184,7 @@
                     "Assets"
                 ],
                 "summary": "Create a new asset",
-                "description": "Creates a new asset in the system",
+                "description": "Creates a new asset with full metadata. Spatial POINT is auto-generated from GPS coordinates.",
                 "operationId": "5f044bcc586b0942143ae0541308a29f",
                 "requestBody": {
                     "content": {
@@ -147,13 +198,25 @@
                                     "current_status"
                                 ],
                                 "properties": {
+                                    "state_id": {
+                                        "type": "string",
+                                        "example": "FLEET-000123"
+                                    },
                                     "name": {
                                         "type": "string",
                                         "example": "Generator Set"
                                     },
+                                    "description": {
+                                        "type": "string",
+                                        "example": "Main generator set"
+                                    },
                                     "category_id": {
                                         "type": "integer",
                                         "example": 1
+                                    },
+                                    "registered_location": {
+                                        "type": "string",
+                                        "example": "Head Office"
                                     },
                                     "latitude": {
                                         "type": "number",
@@ -165,6 +228,21 @@
                                         "format": "float",
                                         "example": 31.0539
                                     },
+                                    "acquisition_date": {
+                                        "type": "string",
+                                        "format": "date",
+                                        "example": "2024-01-15"
+                                    },
+                                    "purchase_value": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "example": 50000
+                                    },
+                                    "current_value": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "example": 45000
+                                    },
                                     "current_status": {
                                         "type": "string",
                                         "example": "Fonctionnel",
@@ -175,38 +253,9 @@
                                             "Inconnu"
                                         ]
                                     },
-                                    "state_id": {
-                                        "type": "string",
-                                        "example": "ASSET-001",
-                                        "nullable": true
-                                    },
-                                    "description": {
-                                        "type": "string",
-                                        "example": "Main generator set",
-                                        "nullable": true
-                                    },
-                                    "registered_location": {
-                                        "type": "string",
-                                        "example": "Head Office",
-                                        "nullable": true
-                                    },
-                                    "acquisition_date": {
-                                        "type": "string",
-                                        "format": "date",
-                                        "example": "2024-01-15",
-                                        "nullable": true
-                                    },
-                                    "purchase_value": {
-                                        "type": "number",
-                                        "format": "float",
-                                        "example": 50000,
-                                        "nullable": true
-                                    },
-                                    "current_value": {
-                                        "type": "number",
-                                        "format": "float",
-                                        "example": 45000,
-                                        "nullable": true
+                                    "parent_asset_id": {
+                                        "type": "integer",
+                                        "example": null
                                     }
                                 },
                                 "type": "object"
@@ -259,7 +308,7 @@
                     "Assets"
                 ],
                 "summary": "Get asset by ID",
-                "description": "Returns a specific asset by its ID",
+                "description": "Returns a specific asset by its ID with full details",
                 "operationId": "d33f5b3852d410de00f34579415803ea",
                 "parameters": [
                     {
@@ -288,13 +337,17 @@
                                                     "type": "integer",
                                                     "example": 1
                                                 },
+                                                "state_id": {
+                                                    "type": "string",
+                                                    "example": "FLEET-000123"
+                                                },
                                                 "name": {
                                                     "type": "string",
                                                     "example": "Generator Set"
                                                 },
-                                                "state_id": {
+                                                "description": {
                                                     "type": "string",
-                                                    "example": "ASSET-001"
+                                                    "example": "Main generator set"
                                                 },
                                                 "current_status": {
                                                     "type": "string",
@@ -311,6 +364,14 @@
                                                 "category_id": {
                                                     "type": "integer",
                                                     "example": 1
+                                                },
+                                                "category_name": {
+                                                    "type": "string",
+                                                    "example": "Vehicle / Fleet / Car"
+                                                },
+                                                "parent_asset_id": {
+                                                    "type": "integer",
+                                                    "example": null
                                                 }
                                             },
                                             "type": "object"
@@ -339,7 +400,7 @@
                     "Assets"
                 ],
                 "summary": "Update asset",
-                "description": "Updates an existing asset",
+                "description": "Updates an existing asset. Records change in audit ledger.",
                 "operationId": "762b28765aa91ab4eeceaeb37ea2c4ee",
                 "parameters": [
                     {
@@ -360,6 +421,10 @@
                                         "type": "string",
                                         "example": "Updated Generator Set"
                                     },
+                                    "description": {
+                                        "type": "string",
+                                        "example": "Updated description"
+                                    },
                                     "current_status": {
                                         "type": "string",
                                         "example": "En Panne",
@@ -369,6 +434,11 @@
                                             "Déclassé",
                                             "Inconnu"
                                         ]
+                                    },
+                                    "current_value": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "example": 40000
                                     }
                                 },
                                 "type": "object"
@@ -387,14 +457,9 @@
                                             "type": "boolean",
                                             "example": true
                                         },
-                                        "data": {
-                                            "properties": {
-                                                "message": {
-                                                    "type": "string",
-                                                    "example": "Asset updated successfully"
-                                                }
-                                            },
-                                            "type": "object"
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Asset updated successfully"
                                         }
                                     },
                                     "type": "object"
@@ -420,7 +485,7 @@
                     "Assets"
                 ],
                 "summary": "Delete asset",
-                "description": "Deletes an asset from the system",
+                "description": "Soft deletes an asset (does not remove from database - anti-corruption requirement)",
                 "operationId": "2a914ba0b6a5eaf5b052ebd0ca7f7c9d",
                 "parameters": [
                     {
@@ -434,7 +499,121 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Asset deleted successfully",
+                        "description": "Asset soft deleted successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Asset soft deleted successfully"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Asset not found"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/assets/search": {
+            "post": {
+                "tags": [
+                    "Assets"
+                ],
+                "summary": "Search assets",
+                "description": "Search assets by state_id, name, or description",
+                "operationId": "55513ec990fb65f44a8d4bf38f496dad",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "query"
+                                ],
+                                "properties": {
+                                    "query": {
+                                        "type": "string",
+                                        "example": "generator"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Search results",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "integer"
+                                                    },
+                                                    "state_id": {
+                                                        "type": "string"
+                                                    },
+                                                    "name": {
+                                                        "type": "string"
+                                                    },
+                                                    "current_status": {
+                                                        "type": "string"
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/assets/summary": {
+            "get": {
+                "tags": [
+                    "Assets"
+                ],
+                "summary": "Get assets summary",
+                "description": "Get summary statistics for all assets",
+                "operationId": "2b989e669bc838b3ddfc9cc12fcc9fe7",
+                "responses": {
+                    "200": {
+                        "description": "Summary statistics",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -445,9 +624,29 @@
                                         },
                                         "data": {
                                             "properties": {
-                                                "message": {
-                                                    "type": "string",
-                                                    "example": "Asset deleted successfully"
+                                                "total_assets": {
+                                                    "type": "integer",
+                                                    "example": 100
+                                                },
+                                                "functional_assets": {
+                                                    "type": "integer",
+                                                    "example": 85
+                                                },
+                                                "broken_down_assets": {
+                                                    "type": "integer",
+                                                    "example": 10
+                                                },
+                                                "total_portfolio_value": {
+                                                    "type": "number",
+                                                    "example": 5000000
+                                                },
+                                                "capital_at_risk": {
+                                                    "type": "number",
+                                                    "example": 500000
+                                                },
+                                                "operational_health_rate": {
+                                                    "type": "number",
+                                                    "example": 85
                                                 }
                                             },
                                             "type": "object"
@@ -457,9 +656,195 @@
                                 }
                             }
                         }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/attachments": {
+            "get": {
+                "tags": [
+                    "Attachments"
+                ],
+                "summary": "List attachments",
+                "description": "Get all attachments for the authenticated user or a specific asset",
+                "operationId": "cfa9af5485a52fb0fa860daf9576874a",
+                "parameters": [
+                    {
+                        "name": "asset_id",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 1
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 20
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List of attachments"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Attachments"
+                ],
+                "summary": "Upload attachment",
+                "description": "Upload a file attachment for an asset, inspection, or ledger entry",
+                "operationId": "514387e0f7b86358ce45fd37883514fe",
+                "requestBody": {
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "required": [
+                                    "asset_id"
+                                ],
+                                "properties": {
+                                    "asset_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "inspection_log_id": {
+                                        "type": "integer",
+                                        "example": null
+                                    },
+                                    "ledger_event_id": {
+                                        "type": "integer",
+                                        "example": null
+                                    },
+                                    "file": {
+                                        "type": "string",
+                                        "format": "binary"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Attachment uploaded successfully"
+                    },
+                    "400": {
+                        "description": "File type or size validation error"
                     },
                     "404": {
                         "description": "Asset not found"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/attachments/{attachment}": {
+            "get": {
+                "tags": [
+                    "Attachments"
+                ],
+                "summary": "Get attachment by ID",
+                "description": "Download or view an attachment",
+                "operationId": "b4246a6218bb1d929ffaebc7da60ebf2",
+                "parameters": [
+                    {
+                        "name": "attachment",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Attachment details",
+                        "headers": {
+                            "Content-Type": {
+                                "description": "File MIME type",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "Content-Disposition": {
+                                "description": "Inline or attachment",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Attachment not found"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Attachments"
+                ],
+                "summary": "Delete attachment",
+                "description": "Delete an attachment",
+                "operationId": "22e9ff53fe78518b229f933accfe1915",
+                "parameters": [
+                    {
+                        "name": "attachment",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Attachment deleted successfully"
+                    },
+                    "404": {
+                        "description": "Attachment not found"
                     },
                     "401": {
                         "description": "Unauthorized"
@@ -679,6 +1064,166 @@
                 ]
             }
         },
+        "/api/dashboards/kpi": {
+            "get": {
+                "tags": [
+                    "Dashboards"
+                ],
+                "summary": "Get real-time KPIs",
+                "description": "Get executive dashboard KPI metrics",
+                "operationId": "a26bebc6ef1f5c311d311625c0ef3bfb",
+                "responses": {
+                    "200": {
+                        "description": "KPI metrics",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "total_portfolio_value": {
+                                                    "type": "number",
+                                                    "example": 5000000
+                                                },
+                                                "operational_health_rate": {
+                                                    "type": "number",
+                                                    "example": 85
+                                                },
+                                                "capital_at_risk": {
+                                                    "type": "number",
+                                                    "example": 500000
+                                                },
+                                                "total_assets": {
+                                                    "type": "integer",
+                                                    "example": 100
+                                                },
+                                                "functional_assets": {
+                                                    "type": "integer",
+                                                    "example": 85
+                                                },
+                                                "broken_down_assets": {
+                                                    "type": "integer",
+                                                    "example": 10
+                                                },
+                                                "declassified_assets": {
+                                                    "type": "integer",
+                                                    "example": 5
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/dashboards/map-pins": {
+            "get": {
+                "tags": [
+                    "Dashboards"
+                ],
+                "summary": "Get map pins for dashboard",
+                "description": "Get all assets with status for map rendering",
+                "operationId": "ec6d6ab3cb1302af8f4bdcb4af6ed3d3",
+                "responses": {
+                    "200": {
+                        "description": "Map pins data",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "asset_id": {
+                                                        "type": "integer"
+                                                    },
+                                                    "name": {
+                                                        "type": "string"
+                                                    },
+                                                    "status": {
+                                                        "type": "string",
+                                                        "enum": [
+                                                            "Fonctionnel",
+                                                            "En Panne",
+                                                            "Déclassé",
+                                                            "Inconnu"
+                                                        ]
+                                                    },
+                                                    "latitude": {
+                                                        "type": "number"
+                                                    },
+                                                    "longitude": {
+                                                        "type": "number"
+                                                    },
+                                                    "value": {
+                                                        "type": "number"
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/dashboards/stale-inspections": {
+            "get": {
+                "tags": [
+                    "Dashboards"
+                ],
+                "summary": "Get assets with stale inspections",
+                "description": "Get assets that haven't been inspected in the last 90 days",
+                "operationId": "5c86f5db1fc1071dc22ea3ffbed22fae",
+                "responses": {
+                    "200": {
+                        "description": "Stale inspection report"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/api/health": {
             "get": {
                 "tags": [
@@ -759,6 +1304,405 @@
                         }
                     }
                 }
+            }
+        },
+        "/api/incidents/log": {
+            "post": {
+                "tags": [
+                    "Incidents"
+                ],
+                "summary": "Log incident with QR scan",
+                "description": "Log an incident by scanning a QR code. Updates asset status to \"En Panne\".",
+                "operationId": "f3c948a694e98e7be52c9bcafa1a0e4b",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "qr_code_data",
+                                    "field_notes"
+                                ],
+                                "properties": {
+                                    "qr_code_data": {
+                                        "type": "string",
+                                        "example": "FLEET-000123"
+                                    },
+                                    "field_notes": {
+                                        "type": "string",
+                                        "example": "Visible damage to chassis"
+                                    },
+                                    "defect_image": {
+                                        "type": "string",
+                                        "format": "binary",
+                                        "nullable": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Incident logged successfully"
+                    },
+                    "404": {
+                        "description": "Asset not found"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/incidents/verify": {
+            "post": {
+                "tags": [
+                    "Incidents"
+                ],
+                "summary": "Verify repair with GPS",
+                "description": "Verify a repair by rescanning the asset. Performs Haversine distance check.",
+                "operationId": "b7950569c3566c808e6672d788620650",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "qr_code_data",
+                                    "field_notes"
+                                ],
+                                "properties": {
+                                    "qr_code_data": {
+                                        "type": "string",
+                                        "example": "FLEET-000123"
+                                    },
+                                    "field_notes": {
+                                        "type": "string",
+                                        "example": "Replaced damaged component"
+                                    },
+                                    "device_latitude": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "example": -17.8255
+                                    },
+                                    "device_longitude": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "example": 31.0539
+                                    },
+                                    "device_timestamp": {
+                                        "type": "string",
+                                        "format": "date-time",
+                                        "example": "2024-01-16T09:15:00Z"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Repair verified successfully"
+                    },
+                    "403": {
+                        "description": "Location drift anomaly detected"
+                    },
+                    "404": {
+                        "description": "Asset not found"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/incidents/unresolved": {
+            "get": {
+                "tags": [
+                    "Incidents"
+                ],
+                "summary": "Get unresolved incidents",
+                "description": "Get all unresolved incidents (assets in \"En Panne\" status)",
+                "operationId": "b2e9f7285d5e964b5d57ce3d9c69e488",
+                "responses": {
+                    "200": {
+                        "description": "List of unresolved incidents"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/incidents/history/{assetId}": {
+            "get": {
+                "tags": [
+                    "Incidents"
+                ],
+                "summary": "Get incident history for asset",
+                "description": "Get all inspection and ledger history for an asset",
+                "operationId": "01ee1dd651475f77d2145f002dd05f5e",
+                "parameters": [
+                    {
+                        "name": "assetId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Asset incident history"
+                    },
+                    "404": {
+                        "description": "Asset not found"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/inspections": {
+            "get": {
+                "tags": [
+                    "Inspections"
+                ],
+                "summary": "List inspections",
+                "description": "Returns paginated list of inspections",
+                "operationId": "a3036a3d088dd98d29db2f3e4693759b",
+                "parameters": [
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 1
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 20
+                        }
+                    },
+                    {
+                        "name": "asset_id",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "type",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "Routine",
+                                "Breakdown",
+                                "Maintenance",
+                                "Handover"
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List of inspections"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Inspections"
+                ],
+                "summary": "Create a new inspection",
+                "description": "Create an inspection for an asset with GPS telemetry. Blocks if GPS accuracy > 15m.",
+                "operationId": "fa33b1fd3fdf2de792a1eb6bcc68e0c2",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "asset_id",
+                                    "inspection_type",
+                                    "condition_status",
+                                    "device_latitude",
+                                    "device_longitude"
+                                ],
+                                "properties": {
+                                    "asset_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "inspection_type": {
+                                        "type": "string",
+                                        "example": "Routine",
+                                        "enum": [
+                                            "Routine",
+                                            "Breakdown",
+                                            "Maintenance",
+                                            "Handover"
+                                        ]
+                                    },
+                                    "condition_status": {
+                                        "type": "string",
+                                        "example": "Fonctionnel",
+                                        "enum": [
+                                            "Fonctionnel",
+                                            "En Panne",
+                                            "Déclassé",
+                                            "Inconnu"
+                                        ]
+                                    },
+                                    "field_notes": {
+                                        "type": "string",
+                                        "example": "Routine inspection completed"
+                                    },
+                                    "verification_image": {
+                                        "type": "string",
+                                        "format": "binary",
+                                        "nullable": true
+                                    },
+                                    "device_latitude": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "example": -17.8255
+                                    },
+                                    "device_longitude": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "example": 31.0539
+                                    },
+                                    "device_timestamp": {
+                                        "type": "string",
+                                        "format": "date-time",
+                                        "example": "2024-01-15T14:30:00Z"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Inspection created successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Inspection created successfully"
+                                        },
+                                        "id": {
+                                            "type": "integer",
+                                            "example": 1
+                                        },
+                                        "distance_from_base_km": {
+                                            "type": "number",
+                                            "example": 0.15
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "GPS accuracy too low or validation error"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "404": {
+                        "description": "Asset not found"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/inspections/{inspection}": {
+            "get": {
+                "tags": [
+                    "Inspections"
+                ],
+                "summary": "Get inspection by ID",
+                "description": "Returns a specific inspection with full details",
+                "operationId": "51bd119baa0fb526f3fb0e0155ff8a90",
+                "parameters": [
+                    {
+                        "name": "inspection",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Inspection details"
+                    },
+                    "404": {
+                        "description": "Inspection not found"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
             }
         },
         "/api/qrcode/scan/{stateId}": {
@@ -885,6 +1829,239 @@
                 }
             }
         },
+        "/api/tasks/assign": {
+            "post": {
+                "tags": [
+                    "Tasks"
+                ],
+                "summary": "Assign task to Field Agent",
+                "description": "Assign an incident to a Field Agent for resolution",
+                "operationId": "51106d5ff653668ee0ec41f2ea212c2b",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "asset_id",
+                                    "assigned_user_id"
+                                ],
+                                "properties": {
+                                    "asset_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "assigned_user_id": {
+                                        "type": "integer",
+                                        "example": 2
+                                    },
+                                    "priority": {
+                                        "type": "string",
+                                        "example": "High",
+                                        "enum": [
+                                            "Low",
+                                            "Medium",
+                                            "High"
+                                        ]
+                                    },
+                                    "due_date": {
+                                        "type": "string",
+                                        "format": "date",
+                                        "example": "2024-01-20"
+                                    },
+                                    "assigned_by_user_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Task assigned successfully"
+                    },
+                    "404": {
+                        "description": "Asset or user not found"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/tasks": {
+            "get": {
+                "tags": [
+                    "Tasks"
+                ],
+                "summary": "Get tasks for user",
+                "description": "Get tasks assigned to the current user or global queue",
+                "operationId": "be68905d866e856db6c738172b8d929a",
+                "parameters": [
+                    {
+                        "name": "agent_id",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "Pending",
+                                "Assigned",
+                                "In Progress",
+                                "Completed",
+                                "Cancelled"
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Task list"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/tasks/global-queue": {
+            "get": {
+                "tags": [
+                    "Tasks"
+                ],
+                "summary": "Get global task queue",
+                "description": "Get all unassigned tasks in the global queue",
+                "operationId": "37012d5a48669187bf3dcf17482bb0e1",
+                "responses": {
+                    "200": {
+                        "description": "Global queue tasks"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/tasks/{task}": {
+            "put": {
+                "tags": [
+                    "Tasks"
+                ],
+                "summary": "Update task status",
+                "description": "Update task status (e.g., mark as completed)",
+                "operationId": "a6b00b06431eae3ece4a210a52501fbd",
+                "parameters": [
+                    {
+                        "name": "task",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "status"
+                                ],
+                                "properties": {
+                                    "status": {
+                                        "type": "string",
+                                        "example": "Completed",
+                                        "enum": [
+                                            "Pending",
+                                            "Assigned",
+                                            "In Progress",
+                                            "Completed",
+                                            "Cancelled"
+                                        ]
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Task updated successfully"
+                    },
+                    "404": {
+                        "description": "Task not found"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Tasks"
+                ],
+                "summary": "Cancel task",
+                "description": "Cancel or delete a task",
+                "operationId": "5626a232c6ca6481a76585b267774c10",
+                "parameters": [
+                    {
+                        "name": "task",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Task cancelled successfully"
+                    },
+                    "404": {
+                        "description": "Task not found"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/api/health-check": {
             "get": {
                 "summary": "Check API availability status",
@@ -904,16 +2081,36 @@
             "description": "Assets"
         },
         {
+            "name": "Attachments",
+            "description": "Attachments"
+        },
+        {
             "name": "Authentication",
             "description": "Authentication"
+        },
+        {
+            "name": "Dashboards",
+            "description": "Dashboards"
         },
         {
             "name": "Health",
             "description": "Health"
         },
         {
+            "name": "Incidents",
+            "description": "Incidents"
+        },
+        {
+            "name": "Inspections",
+            "description": "Inspections"
+        },
+        {
             "name": "QR Code",
             "description": "QR Code"
+        },
+        {
+            "name": "Tasks",
+            "description": "Tasks"
         }
     ]
 }
