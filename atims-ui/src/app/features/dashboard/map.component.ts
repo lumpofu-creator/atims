@@ -1,14 +1,7 @@
-import { Component, OnInit, OnDestroy, ElementRef, ViewContainerRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, ElementRef, Input } from '@angular/core';
 import * as L from 'leaflet';
 import { MapService } from './map.service';
-
-export interface MapPin {
-  assetId: number;
-  name: string;
-  status: string;
-  latitude: number;
-  longitude: number;
-}
+import { MapPin } from './map-pin.model';
 
 @Component({
   selector: 'app-map',
@@ -24,10 +17,22 @@ export interface MapPin {
 })
 export class MapComponent implements OnInit, OnDestroy {
   private map!: L.Map;
-  private pins: Map<number, L.Marker> = new Map();
+  private markers: Map<number, L.Marker> = new Map();
   private icons: Map<string, L.Icon> = new Map();
   
-  @Input() pinsInput: MapPin[] = [];
+  private currentPins: MapPin[] = [];
+
+  @Input()
+  set pinsInput(value: MapPin[] | null | undefined) {
+    this.currentPins = Array.isArray(value) ? value : [];
+    if (this.map) {
+      this.updatePins();
+    }
+  }
+
+  get pinsInput(): MapPin[] {
+    return this.currentPins;
+  }
   
   constructor(
     private elRef: ElementRef,
@@ -39,10 +44,6 @@ export class MapComponent implements OnInit, OnDestroy {
     this.initMap();
   }
   
-  ngOnChanges(): void {
-    this.updatePins();
-  }
-  
   ngOnDestroy(): void {
     if (this.map) {
       this.map.remove();
@@ -52,32 +53,26 @@ export class MapComponent implements OnInit, OnDestroy {
   private createIcons(): void {
     // Green pin for Fonctionnel
     this.icons.set('Fonctionnel', L.icon({
-      iconUrl: '/assets/icons/green-pin.png',
+      iconUrl: '/assets/icons/green-pin.svg',
       iconSize: [25, 41],
       iconAnchor: [12, 41],
       popupAnchor: [1, -34],
-      shadowUrl: '/assets/icons/pin-shadow.png',
-      shadowSize: [41, 41]
     }));
     
     // Red pin for En Panne
     this.icons.set('En Panne', L.icon({
-      iconUrl: '/assets/icons/red-pin.png',
+      iconUrl: '/assets/icons/red-pin.svg',
       iconSize: [25, 41],
       iconAnchor: [12, 41],
       popupAnchor: [1, -34],
-      shadowUrl: '/assets/icons/pin-shadow.png',
-      shadowSize: [41, 41]
     }));
     
     // Gray pin for other statuses
     this.icons.set('Déclassé', L.icon({
-      iconUrl: '/assets/icons/gray-pin.png',
+      iconUrl: '/assets/icons/gray-pin.svg',
       iconSize: [25, 41],
       iconAnchor: [12, 41],
       popupAnchor: [1, -34],
-      shadowUrl: '/assets/icons/pin-shadow.png',
-      shadowSize: [41, 41]
     }));
     
     this.icons.set('Inconnu', this.icons.get('Déclassé')!);
@@ -96,16 +91,16 @@ export class MapComponent implements OnInit, OnDestroy {
   
   private updatePins(): void {
     // Remove pins not in new data
-    this.pins.forEach((marker, id) => {
+    this.markers.forEach((marker, id) => {
       if (!this.pinsInput.find(p => p.assetId === id)) {
         this.map.removeLayer(marker);
-        this.pins.delete(id);
+        this.markers.delete(id);
       }
     });
     
     // Add/update pins
     this.pinsInput.forEach(pin => {
-      const existingPin = this.pins.get(pin.assetId);
+      const existingPin = this.markers.get(pin.assetId);
       
       if (existingPin) {
         // Update position if changed
@@ -124,7 +119,7 @@ export class MapComponent implements OnInit, OnDestroy {
         
         marker.bindTooltip(`${pin.name} (${pin.status})`);
         
-        this.pins.set(pin.assetId, marker);
+        this.markers.set(pin.assetId, marker);
       }
     });
   }

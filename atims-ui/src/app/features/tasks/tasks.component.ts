@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { TaskService } from './task.service';
 
 @Component({
@@ -93,6 +93,7 @@ import { TaskService } from './task.service';
       }
     </div>
     `,
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class TasksComponent implements OnInit {

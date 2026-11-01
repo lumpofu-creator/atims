@@ -6,6 +6,7 @@ import { RouterModule } from '@angular/router';
 
 @Component({
   selector: 'app-assets',
+  imports: [CommonModule, FormsModule, RouterModule],
   template: `
     <div class="container">
       <h1>Gestion des Actifs</h1>

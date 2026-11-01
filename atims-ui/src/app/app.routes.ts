@@ -8,15 +8,15 @@ export const routes: Routes = [
   },
   {
     path: 'dashboard',
-    loadChildren: () => import('./features/dashboard/dashboard.module').then(m => m.DashboardModule)
+    loadComponent: () => import('./features/dashboard/dashboard.component').then(m => m.DashboardComponent)
   },
   {
     path: 'assets',
-    loadChildren: () => import('./features/assets/assets.module').then(m => m.AssetsModule)
+    loadComponent: () => import('./features/assets/assets.component').then(m => m.AssetsComponent)
   },
   {
     path: 'incidents',
-    loadChildren: () => import('./features/incidents/incidents.module').then(m => m.IncidentsModule)
+    loadComponent: () => import('./features/incidents/incident-log.component').then(m => m.IncidentLogComponent)
   },
   {
     path: 'tasks',

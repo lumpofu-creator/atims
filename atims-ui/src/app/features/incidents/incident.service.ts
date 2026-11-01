@@ -40,10 +40,10 @@ export class IncidentService {
   }
   
   getUnresolved(): Observable<any[]> {
-    return this.http.get(`${this.apiUrl}/unresolved`);
+    return this.http.get<any[]>(`${this.apiUrl}/unresolved`);
   }
   
   getHistory(assetId: number): Observable<any[]> {
-    return this.http.get(`${this.apiUrl}/history/${assetId}`);
+    return this.http.get<any[]>(`${this.apiUrl}/history/${assetId}`);
   }
 }

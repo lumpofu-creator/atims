@@ -2,6 +2,13 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, BehaviorSubject } from 'rxjs';
 import { environment } from '../../../environments/environment';
+import { map } from 'rxjs/operators';
+import { ApiMapPin, MapPin } from '../dashboard/map-pin.model';
+
+interface ApiResponse<T> {
+  success: boolean;
+  data: T;
+}
 
 export interface Asset {
   id: number;
@@ -15,6 +22,22 @@ export interface Asset {
   currentStatus: 'Fonctionnel' | 'En Panne' | 'Déclassé' | 'Inconnu';
   purchaseValue: number;
   currentValue: number;
+}
+
+export interface RecentInspection {
+  id: number;
+  assetName: string | null;
+  inspectionType: string;
+  conditionStatus: string;
+  date: string;
+}
+
+interface ApiInspection {
+  id: number;
+  asset_name: string | null;
+  inspection_type: string;
+  condition_status: string;
+  created_at: string;
 }
 
 @Injectable({
@@ -41,12 +64,34 @@ export class AssetService {
     return this.http.put<Asset>(`${this.apiUrl}/${id}`, asset);
   }
   
-  getMapPins(): Observable<any[]> {
-    return this.http.get('/api/dashboards/map-pins');
+  getMapPins(): Observable<MapPin[]> {
+    return this.http.get<ApiResponse<ApiMapPin[]>>('/api/dashboards/map-pins').pipe(
+      map(response => Array.isArray(response?.data)
+        ? response.data.map(pin => ({
+            assetId: pin.asset_id,
+            name: pin.name,
+            status: pin.status,
+            latitude: Number(pin.latitude),
+            longitude: Number(pin.longitude)
+          }))
+        : [])
+    );
   }
   
-  getRecentInspections(): Observable<any[]> {
-    return this.http.get('/api/inspections?limit=10&orderBy=created_at:desc');
+  getRecentInspections(): Observable<RecentInspection[]> {
+    return this.http.get<ApiResponse<{ items: ApiInspection[] }>>(
+      '/api/inspections?limit=10&orderBy=created_at:desc'
+    ).pipe(
+      map(response => Array.isArray(response?.data?.items)
+        ? response.data.items.map(inspection => ({
+            id: inspection.id,
+            assetName: inspection.asset_name,
+            inspectionType: inspection.inspection_type,
+            conditionStatus: inspection.condition_status,
+            date: inspection.created_at
+          }))
+        : [])
+    );
   }
   
   search(searchTerm: string): Observable<Asset[]> {

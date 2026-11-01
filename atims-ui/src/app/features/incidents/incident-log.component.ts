@@ -1,9 +1,12 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { IncidentService } from './incident.service';
+import { ReactiveFormsModule } from '@angular/forms';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-incident-log',
+  imports: [CommonModule, ReactiveFormsModule],
   template: `
     <div class="container">
       <h1>Journaliser un Incident</h1>
@@ -110,6 +113,7 @@ import { IncidentService } from './incident.service';
   `
 })
 export class IncidentLogComponent implements OnInit {
+  readonly Math = Math;
   incidentForm!: FormGroup;
   scanning = false;
   selectedFile: File | null = null;

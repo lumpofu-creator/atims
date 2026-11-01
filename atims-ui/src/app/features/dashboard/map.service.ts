@@ -1,7 +1,8 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, BehaviorSubject } from 'rxjs';
-import { MapPin } from './map.component';
+import { MapPin } from './map-pin.model';
+import { tap } from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root'

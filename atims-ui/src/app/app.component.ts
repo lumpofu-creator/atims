@@ -1,7 +1,9 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
+import { RouterOutlet } from '@angular/router';
 
 @Component({
     selector: 'app-root',
+    imports: [RouterOutlet],
     template: `
     <router-outlet></router-outlet>
   `,
@@ -11,7 +13,8 @@ import { Component } from '@angular/core';
       min-height: 100vh;
     }
   `],
-    standalone: false
+    changeDetection: ChangeDetectionStrategy.Eager,
+    standalone: true
 })
 export class AppComponent {
   title = 'ATIMS';

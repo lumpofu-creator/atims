@@ -1,11 +1,15 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Observable, Subscription } from 'rxjs';
-import { AssetService } from '../assets/asset.service';
+import { AssetService, RecentInspection } from '../assets/asset.service';
 import { KpiService } from './kpi.service';
 import { Kpi } from './kpi.model';
+import { CommonModule } from '@angular/common';
+import { MapComponent } from './map.component';
+import { MapPin } from './map-pin.model';
 
 @Component({
   selector: 'app-dashboard',
+  imports: [CommonModule, MapComponent],
   template: `
     <div class="container">
       <h1>Dashboard</h1>
@@ -26,7 +30,7 @@ import { Kpi } from './kpi.model';
         </div>
         <div class="kpi-card">
           <h3>Capital at Risk</h3>
-          <div class="value" [class.text-danger]="kpis?.capitalAtRisk > 0">
+          <div class="value" [class.text-danger]="(kpis?.capitalAtRisk ?? 0) > 0">
             {{ kpis?.capitalAtRisk | currency:'EUR':'symbol':'1.0-0' }}
           </div>
         </div>
@@ -34,7 +38,7 @@ import { Kpi } from './kpi.model';
       
       <!-- Map Container -->
       <div class="map-container">
-        <app-map [pins]="mapPins$ | async"></app-map>
+        <app-map [pinsInput]="(mapPins$ | async) ?? []"></app-map>
       </div>
       
       <!-- Recent Inspections -->
@@ -59,8 +63,8 @@ import { Kpi } from './kpi.model';
 })
 export class DashboardComponent implements OnInit, OnDestroy {
   kpis: Kpi | null = null;
-  mapPins$: Observable<any[]>;
-  inspections: any[] = [];
+  mapPins$!: Observable<MapPin[]>;
+  inspections: RecentInspection[] = [];
   
   private subscription = new Subscription();
   

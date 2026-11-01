@@ -4,7 +4,7 @@
 
 export const environment = {
   production: false,
-  apiBase: '../atims-be/public/api',
+  apiBase: 'http://localhost:8000/api',
   appVersion: '1.0.0',
   geofenceThresholdKm: 2.0,
   gpsAccuracyThresholdM: 15
