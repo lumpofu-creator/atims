@@ -4,326 +4,346 @@
 
 This implementation plan covers all 15 functional requirements for the Asset Tracking and Infrastructure Management System (ATIMS). The implementation follows the requirements-first workflow with infrastructure/database setup first, followed by core API/backend development, and finally frontend PWA development. All tasks reference specific requirements for traceability.
 
+**Last Updated:** 2026-11-01 (based on context gathering findings)
+
+**Current State:** 
+- **Backend:** Laravel 11 in `atims-be/` - services complete, controllers stubbed, 2 tables missing
+- **Frontend:** Angular 16 PWA in `atims-ui/` - core structure complete, basic components implemented
+
 ## Tasks
 
-- [x] 1. Infrastructure and Database Setup
-  - [ ] 1.1 Create MySQL database schema with spatial support
-    - [ ] Create `assets` table with POINT geometry type and SPATIAL INDEX
-    - [ ] Create `inspections` table with inspection_type ENUM
-    - [ ] Create `ledgers` table with JSON columns for audit trail
-    - [ ] Create `task_queues` table for incident assignment workflow
-    - [ ] Create `attachments` index table for document management
-    - [ ] Extend `users` table with MFA fields (mfa_enabled, mfa_secret, last_login)
-    - _Requirements: 2.2, 3, 5.1, 14_
-  
-  - [ ] 1.2 Set up PHP backend project structure
-    - [ ] Create directory structure: `backend/src/Models/`, `backend/src/Services/`, `backend/src/routes.php`
-    - [ ] Configure `.htaccess` for URL rewriting and security headers
-    - [ ] Set up Composer autoloading with PSR-4
-    - [ ] Configure PHP settings for shared hosting (upload_max_filesize=8M, post_max_size=16M, max_execution_time=30)
-    - _Requirements: 12.4_
-  
-  - [ ] 1.3 Configure Angular PWA project
-    - [ ] Generate Angular project with routing and TypeScript strict mode
-    - [ ] Install Leaflet.js and @asymmetrik/ngx-leaflet for map rendering
-    - [ ] Install html5-qrcode for QR code scanning
-    - [ ] Configure ngsw-config.json for offline support
-    - [ ] Set up PWA manifest.webmanifest for installable app support
-    - _Requirements: 7_
+### Phase 1: Infrastructure and Setup ✅ COMPLETED
 
-- [ ] 2. Core Backend Services Implementation
-  - [ ] 2.1 Implement Haversine Service for distance calculation
-    - [ ] Create `HaversineService.php` with Earth radius 6371km constant
-    - [ ] Implement `calculateDistance()` method using MySQL spatial functions
-    - [ ] Add unit tests with equator, poles, and date line test cases
-    - [ ] Add property test: Haversine distance symmetry (Property 1)
-    - _Requirements: 4.1, 4.4, 14.4_
-  
-  - [ ] 2.2 Implement Asset Repository with spatial queries
-    - [ ] Create `AssetRepository` class extending base repository pattern
-    - [ ] Implement `findByLocation()` method using ST_Distance_Sphere
-    - [ ] Implement `getWithHierarchy()` for 3-tier category traversal
-    - [ ] Add spatial index queries for performance optimization
-    - _Requirements: 2.3, 2.2_
-  
-  - [ ] 2.3 Implement Ledger Service for immutable audit trail
-    - [ ] Create `LedgerService.php` with append-only write method
-    - [ ] Implement `recordEvent()` with JSON old_data/new_data capture
-    - [ ] Add IP address and device type logging middleware integration
-    - [ ] Create unit tests for ledger completeness (Property 6)
-    - _Requirements: 5.2, 5.5, 14.6_
-  
-  - [ ] 2.4 Implement QR Code Service
-    - [ ] Integrate endroid/qr-code library for generation
-    - [ ] Implement `generateStateId()` with format [PREFIX]-[6 DIGITS]
-    - [ ] Implement `generateQrUrl()` with simplified short URL pattern
-    - [ ] Add tests for QR code readability on low-density labels
-    - _Requirements: 6.1, 6.4, 15.1, 15.9_
-  
-  - [ ] 2.5 Implement Image Compression Service
-    - [ ] Create `ImageService.php` with GD library integration
-    - [ ] Implement `compressForMobile()` enforcing 800KB limit
-    - [ ] Implement `compressForDesktop()` enforcing 5MB limit
-    - [ ] Add property test: preserve files under 800KB (Property 7)
-    - _Requirements: 8.2, 8.3_
+- [x] 1.0 Laravel Project Setup
+  - [x] Laravel 11 project created in `atims-be/` directory
+  - [x] Database configured (MySQL with spatial support)
+  - [x] Composer dependencies installed
+  - _Requirements: 12.4_
 
-- [ ] 3. API Endpoints Implementation
-  - [ ] 3.1 Implement Authentication & RBAC endpoints
-    - [ ] Create `/api/auth/login` with JWT token generation
-    - [ ] Create `/api/auth/logout` with session invalidation
-    - [ ] Implement `RateLimitMiddleware` (5 attempts → 15-minute lockout)
-    - [ ] Create `RoleGuard` for endpoint protection
-    - _Requirements: 1.1, 1.2, 1.3, 11.1_
-  
-  - [ ] 3.2 Implement Asset Onboarding endpoints
-    - [ ] Create `POST /api/assets` with full metadata validation
-    - [ ] Implement 3-tier category hierarchy validation
-    - [ ] Add self-referencing parent_asset_id handling
-    - [ ] Auto-generate Spatial POINT from GPS coordinates
-    - [ ] _Requirements: 2.1, 2.3, 2.4, 15.1, 15.3_
-  
-  - [ ] 3.3 Implement Inspection endpoints
-    - [ ] Create `POST /api/inspections` with GPS accuracy validation
-    - [ ] Add GPS accuracy check: block if > 15 meters (Requirement 3.5)
-    - [ ] Return Haversine distance in response for logging
-    - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5_
-  
-  - [ ] 3.4 Implement Incident & Breakdown workflow endpoints
-    - [ ] Create `POST /api/incidents/log` for QR scan + defect image
-    - [ ] Create `POST /api/incidents/verify` for repair validation
-    - [ ] Implement Haversine distance check in verification endpoint
-    - [ ] Add `/api/incidents/unresolved` for Logistics Officer view
-    - [ ] Add `/api/incidents/history/{assetId}` for State Auditor
-    - _Requirements: 14.1, 14.2, 14.3, 14.4, 14.5, 14.6_
-  
-  - [ ] 3.5 Implement Task Queue endpoints
-    - [ ] Create `POST /api/tasks/assign` for Logistics Officer dispatch
-    - [ ] Create `GET /api/tasks?agent_id={id}` for Field Agent queue
-    - [ ] Create `PUT /api/tasks/{id}` for status updates
-    - [ ] Implement global queue removal on assignment
-    - _Requirements: 14.3_
-  
-  - [ ] 3.6 Implement Document Upload endpoints
-    - [ ] Create `POST /api/uploads` with MIME type validation
-    - [ ] Implement file size enforcement (800KB mobile, 5MB desktop)
-    - [ ] Add attachment index table insertion
-    - _Requirements: 8.1, 8.4_
-  
-  - [ ] 3.7 Implement Executive Dashboard endpoints
-    - [ ] Create `GET /api/dashboards/kpi` for real-time metrics
-    - [ ] Create `GET /api/dashboards/map-pins` for delta updates
-    - [ ] Implement Capital at Risk calculation endpoint
-    - _Requirements: 11.2, 11.4_
-  
-  - [ ] 3.8 Implement Reporting & Export endpoints
-    - [ ] Create `POST /api/reports/generate` with PDF, Excel, CSV formats
-    - [ ] Implement date range and status filtering
-    - [ ] Add French localization to all export content
-    - _Requirements: 9.1, 9.2, 13.2_
+- [x] 1.1 Base Backend Services Implemented
+  - [x] `HaversineService` - Complete with 6371km Earth radius, 2.0km geofence threshold, 15m GPS accuracy check
+  - [x] `ImageService` - Complete with 800KB mobile and 5MB desktop compression
+  - [x] `QrCodeService` - Complete with state ID validation
+  - [x] `LedgerService` - Skeleton exists, needs ledgers table integration
+  - _Requirements: 4, 5, 8_
 
-- [ ] 4. Frontend Implementation
-  - [ ] 4.1 Implement Authentication UI
-    - [ ] Create login component with rate limit feedback
-    - [ ] Implement invite-only registration (blocked self-registration)
-    - [ ] Add MFA support UI (TOTP, SMS, Email OTP)
-    - _Requirements: 10.1, 10.2, 10.6_
-  
-  - [ ] 4.2 Implement Asset Onboarding UI
-    - [ ] Create asset registration form with 3-tier category selector
-    - [ ] Add GPS coordinate inputs with WGS 84 validation
-    - [ ] Implement parent-child asset relationship selector
-    - [ ] Add QR code preview before print
-    - _Requirements: 15.2, 15.4, 15.5, 15.6_
-  
-  - [ ] 4.3 Implement Inspection Workflow UI
-    - [ ] Create QR scanner component using html5-qrcode
-    - [ ] Build inspection form with condition status selection
-    - [ ] Implement GPS accuracy indicator and submission blocking
-    - [ ] Add image capture for defect documentation (mobile)
-    - _Requirements: 6.2, 6.4, 3.1, 3.5_
-  
-  - [ ] 4.4 Implement Incident & Breakdown UI
-    - [ ] Create incident log form with defect image upload
-    - [ ] Implement dashboard map with Leaflet.js pin updates
-    - [ ] Add red alert asset highlighting on map
-    - [ ] Create task assignment UI for Logistics Officer
-    - _Requirements: 14.1, 14.2_
-  
-  - [ ] 4.5 Implement Executive Dashboard UI
-    - [ ] Integrate Leaflet.js map component with dynamic pins
-    - [ ] Create KPI cards: Total Portfolio Value, Operational Health Rate, Capital at Risk
-    - [ ] Implement pin color coding: Green/Red/Gray based on status
-    - [ ] Add 90-day inspection warning flags
-    - _Requirements: 11.1, 11.2, 11.3, 11.4_
-  
-  - [ ] 4.6 Implement Offline PWA Support
-    - [ ] Configure Service Worker for API caching
-    - [ ] Implement IndexedDB for offline inspection storage
-    - [ ] Create sync service with connection status monitoring
-    - [ ] Add auto-upload queue when connectivity restored
-    - _Requirements: 7.1, 7.2, 7.3, 7.4, 7.5_
-  
-  - [ ] 4.7 Implement Localization (French)
-    - [ ] Create French translation files for all UI text
-    - [ ] Implement translation service with fallback to English
-    - [ ] Add French to all PDF/Excel/CSV exports
-    - [ ] Translate all error messages
-    - _Requirements: 13.1, 13.2, 13.3_
+- [x] 1.2 Existing Database Tables
+  - [x] `users` - Custom schema with MFA fields (mfa_enabled, mfa_secret, last_login, etc.)
+  - [x] `assets` - With spatial columns (POINT geometry for location_point)
+  - [x] `cache` - Laravel built-in
+  - [x] `jobs` - Laravel built-in
+  - [x] `sessions` - Laravel built-in
 
-- [ ] 5. Testing Implementation
-  - [ ] 5.1 Write unit tests for core services
-    - [ ] Test Haversine calculation with edge cases (poles, date line)
-    - [ ] Test image compression preserve/uncompress behavior
-    - [ ] Test ledger record creation with JSON data
-    - _Requirements: 4, 8, 5_
-  
-  - [ ] 5.2 Write property-based tests
-    - [ ] Property 1: Haversine distance symmetry test (1000 iterations)
-    - [ ] Property 2: GPS validation threshold test (100 iterations)
-    - [ ] Property 3: Status change immutability test (100 iterations)
-    - [ ] Property 4: Task assignment exclusivity test (100 iterations)
-    - [ ] Property 5: Capital at Risk accuracy test (100 iterations)
-    - [ ] Property 6: Ledger event completeness test (100 iterations)
-    - [ ] Property 7: Image compression preservation test (100 iterations)
-    - [ ] Property 8: Offline sync integrity test (100 iterations)
-    - _Requirements: 4, 8, 5, 14_
-  
-  - [ ] 5.3 Write integration tests
-    - [ ] Test complete incident workflow: log → assign → verify → update
-    - [ ] Test drift detection: report from >2km → forensic state
-    - [ ] Test offline sync: create offline → go online → verify DB
-    - [ ] Test role-based access: 403 on unauthorized operations
-    - _Requirements: 14, 4, 7, 1_
-  
-  - [ ] 5.4 Write end-to-end tests
-    - [ ] Test user provisioning workflow: invite → link → form → account
-    - [ ] Test QR dual routing: authenticated vs. public
-    - [ ] Test export formats: PDF, Excel, CSV with filters
-    - _Requirements: 10, 6, 9_
-  
-  - [ ] 5.5 Write performance tests
-    - [ ] Test API response time < 2.0 seconds on shared hosting
-    - [ ] Test database query optimization with spatial indexes
-    - [ ] Test file upload compression performance
-    - _Requirements: 12.1, 12.2, 12.3_
+- [x] 1.3 Existing API Controllers (Stubbed)
+  - [x] `HealthCheckController` - Working (DB connection test)
+  - [x] `AuthController` - Placeholder (login, logout, me endpoints)
+  - [x] `AssetController` - Partial (GET /api/assets working, others stubbed)
+  - [x] `QrCodeController` - Placeholder (scan, verify endpoints)
+  - _Requirements: All_
 
-- [ ] 6. Security Implementation
-  - [ ] 6.1 Implement authentication middleware
-    - [ ] Create JWT validation middleware for PHP backend
-    - [ ] Add MFA verification header check for protected endpoints
-    - [ ] Implement token refresh mechanism
-    - _Requirements: 1.4, 10.7_
-  
-  - [ ] 6.2 Implement RBAC enforcement
-    - [ ] Create route guards in Angular for role-based access
-    - [ ] Add middleware checks in PHP for API endpoint protection
-    - [ ] Test all four roles: Field Agent, Logistics Officer, State Auditor, Executive
-    - _Requirements: 1.2, 1.3_
-  
-  - [ ] 6.3 Implement file upload security
-    - [ ] Add MIME type whitelist for images and documents
-    - [ ] Implement virus scanning placeholder (extensibility point)
-    - [ ] Add file size validation on both client and server
-    - _Requirements: 8.1, 8.2, 8.3_
-  
-  - [ ] 6.4 Implement audit logging
-    - [ ] Add user ID, IP address, device type to all ledger entries
-    - [ ] Implement immutable timestamp recording
-    - _Requirements: 5.2, 5.5_
+- [x] 1.4 Angular PWA Project Setup
+  - [x] Angular 16 project created in `atims-ui/` directory
+  - [x] TypeScript strict mode enabled
+  - [x] PWA manifest and service worker configured
+  - [x] Leaflet.js and @asymmetrik/ngx-leaflet installed
+  - [x] html5-qrcode installed for QR scanning
+  - _Requirements: 7, 11, 12_
 
-- [ ] 7. Deployment and Configuration
-  - [ ] 7.1 Configure shared hosting deployment
-    - [ ] Set up `.htaccess` for URL rewriting
-    - [ ] Configure PHP settings (upload limits, execution time)
-    - [ ] Optimize database for shared hosting constraints
-    - _Requirements: 12.4, 12.5_
-  
-  - [ ] 7.2 Configure production deployment
-    - [ ] Set up dedicated server configuration
-    - [ ] Implement Redis caching for KPI calculations
-    - [ ] Configure SSL/TLS for all API endpoints
-    - _Requirements: 12_
-  
-  - [ ] 7.3 Set up monitoring
-    - [ ] Configure error logging to storage/logs/
-    - [ ] Add database query performance monitoring
-    - [ ] Implement health check endpoint
-    - _Requirements: 12_
+### Phase 2: Database Schema (Priority: Critical) ⏳ TODO
 
-- [ ] 8. Documentation
-  - [ ] 8.1 Create API documentation
-    - [ ] Document all endpoints with request/response examples
-    - [ ] Include authentication and error handling
-    - _Requirements: All_
-  
-  - [ ] 8.2 Create user documentation
-    - [ ] Create role-specific guides (Field Agent, Logistics Officer, etc.)
-    - [ ] Document offline operation procedures
-    - _Requirements: All_
-  
-  - [ ] 8.3 Create deployment documentation
-    - [ ] Document shared hosting setup steps
-    - [ ] Document production deployment procedures
-    - _Requirements: 12_
+- [ ] 2.1 Create missing database migrations
+  - [ ] Create `inspections` table (Requirement 3, 14)
+    - Fields: asset_id, user_id, inspection_type (ENUM), condition_status (ENUM), field_notes, verification_image, device_latitude, device_longitude, device_timestamp
+  - [ ] Create `ledgers` table (Requirement 5 - Anti-Corruption Ledger)
+    - Fields: event_type, table_name, record_id, old_data (JSON), new_data (JSON), user_id, ip_address, device_type, metadata (JSON), created_at
+  - [ ] Create `task_queues` table (Requirement 14 - Task Assignment)
+    - Fields: task_type (ENUM), asset_id, assigned_user_id, global_queue_order, status (ENUM), due_date, created_at, completed_at
+  - [ ] Create `attachments` table (Requirement 8 - Document Upload)
+    - Fields: asset_id, user_id, inspection_log_id, ledger_event_id, file_path, file_name, file_size, file_type, created_at
+  - [ ] Create `categories` table (Requirement 2.3 - 3-tier hierarchy)
+    - Fields: name, code, parent_id (self-referencing), category_type (ENUM: general_group, asset_group, asset_type)
+  - _Requirements: 2.2, 2.3, 3, 5.1, 8.1, 14_
+
+- [ ] 2.2 Run migrations and verify schema
+  - [ ] Execute `php artisan migrate`
+  - [ ] Verify spatial index on assets.location_point
+  - [ ] Verify all foreign key constraints
+  - [ ] Test database connection with `php artisan tinker`
+
+### Phase 3: Models and Repositories ⏳ TODO
+
+- [ ] 3.1 Create Eloquent models
+  - [ ] Create `Asset` model with spatial attributes and relationships
+  - [ ] Create `Inspection` model with asset/user relationships
+  - [ ] Create `Ledger` model for audit trail
+  - [ ] Create `TaskQueue` model for assignment workflow
+  - [ ] Create `Attachment` model for file tracking
+  - [ ] Create `Category` model for 3-tier hierarchy
+  - _Requirements: 2.1, 2.2, 2.3, 2.4, 3, 5, 14_
+
+- [ ] 3.2 Implement AssetRepository with spatial queries
+  - [ ] Implement CRUD operations for assets table
+  - [ ] Implement `findByLocation()` method using ST_Distance_Sphere
+  - [ ] Implement `getWithHierarchy()` for 3-tier category traversal
+  - [ ] Add spatial index queries for performance optimization
+  - _Requirements: 2.2, 2.3_
+
+- [ ] 3.3 Complete LedgerService for immutable audit trail
+  - [ ] Implement `recordEvent()` with JSON old_data/new_data capture
+  - [ ] Add IP address and device type logging
+  - [ ] Create unit tests for ledger completeness
+  - _Requirements: 5.2, 5.5, 14.6_
+
+### Phase 4: API Endpoints Implementation ⏳ TODO
+
+- [ ] 4.1 Complete AssetController with real database operations
+  - [ ] Implement `store()` with full metadata validation and spatial point generation
+  - [ ] Implement `update()` with history tracking
+  - [ ] Implement `destroy()` (soft delete only - anti-corruption ledger requirement)
+  - [ ] Add pagination, filtering, and sorting
+  - _Requirements: 2.1, 2.3, 2.4, 15.1, 15.3_
+
+- [ ] 4.2 Implement Inspection endpoints
+  - [ ] Create `InspectionController` with `POST /api/inspections`
+  - [ ] Add GPS accuracy check: block if > 15 meters (Requirement 3.5)
+  - [ ] Calculate and return Haversine distance in response
+  - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5_
+
+- [ ] 4.3 Implement Incident & Breakdown workflow endpoints
+  - [ ] Create `IncidentController`
+  - [ ] Implement `POST /api/incidents/log` for QR scan + defect image
+  - [ ] Implement `POST /api/incidents/verify` for repair validation with Haversine check
+  - [ ] Add `GET /api/incidents/unresolved` for Logistics Officer view
+  - [ ] Add `GET /api/incidents/history/{assetId}` for State Auditor
+  - _Requirements: 14.1, 14.2, 14.3, 14.4, 14.5, 14.6_
+
+- [ ] 4.4 Implement Task Queue endpoints
+  - [ ] Create `TaskController`
+  - [ ] Implement `POST /api/tasks/assign` for Logistics Officer dispatch
+  - [ ] Implement `GET /api/tasks?agent_id={id}` for Field Agent queue
+  - [ ] Implement `PUT /api/tasks/{id}` for status updates
+  - _Requirements: 14.3_
+
+- [ ] 4.5 Implement Document Upload endpoints
+  - [ ] Create `AttachmentController`
+  - [ ] Implement `POST /api/uploads` with MIME type validation
+  - [ ] Implement file size enforcement (800KB mobile, 5MB desktop)
+  - _Requirements: 8.1, 8.4_
+
+- [ ] 4.6 Implement Executive Dashboard endpoints
+  - [ ] Create `DashboardController`
+  - [ ] Implement `GET /api/dashboards/kpi` for real-time metrics
+  - [ ] Implement `GET /api/dashboards/map-pins` for delta updates
+  - [ ] Implement `Capital at Risk` calculation
+  - _Requirements: 11.2, 11.4_
+
+### Phase 5: Authentication and Security ⏳ TODO
+
+- [ ] 5.1 Implement Sanctum authentication
+  - [ ] Set up Sanctum for API token authentication
+  - [ ] Implement `POST /api/auth/login` with JWT/Sanctum token generation
+  - [ ] Implement `POST /api/auth/logout` with session invalidation
+  - [ ] Implement `GET /api/auth/me` for user details
+  - _Requirements: 1.1, 1.2, 1.4_
+
+- [ ] 5.2 Implement Rate Limiting
+  - [ ] Configure RateLimitMiddleware (5 attempts → 15-minute lockout)
+  - [ ] Implement per-user rate limiting
+  - _Requirements: 10.5_
+
+- [ ] 5.3 Implement Role-based Access Control
+  - [ ] Update RoleGuard middleware for route protection
+  - [ ] Protect routes with role requirements (Field Agent, Logistics Officer, State Auditor, Executive)
+  - _Requirements: 1.2, 1.3_
+
+### Phase 6: QR Code and External Services ⏳ TODO
+
+- [ ] 6.1 Complete QrCodeController
+  - [ ] Implement `GET /api/qrcode/scan/{stateId}` for authenticated field agents
+  - [ ] Implement `GET /api/qrcode/verify/{stateId}` for public verification
+  - [ ] Add asset lookup from database
+  - _Requirements: 6.2, 6.4_
+
+### Phase 7: Testing (Optional for MVP) ⏳ TODO
+
+- [ ] 7.1 Write integration tests
+  - [ ] Test complete incident workflow: log → assign → verify → update
+  - [ ] Test drift detection: report from >2km → forensic state
+  - [ ] Test role-based access: 403 on unauthorized operations
+  - _Requirements: 14, 4, 1_
+
+- [ ] 7.2 Write API endpoint tests
+  - [ ] Test all Asset endpoints
+  - [ ] Test all Inspection endpoints
+  - [ ] Test all Incident endpoints
+  - _Requirements: All_
+
+---
+
+## Frontend Tasks (atims-ui/) ✅ PARTIALLY COMPLETE
+
+### Phase 8: Core Angular Components ✅ COMPLETED
+
+- [x] 8.1 Main Application Structure
+  - [x] Angular 16 project with routing
+  - [x] Feature modules: assets, dashboard, incidents
+  - [x] Shared services and components
+  - [x] Environment configuration with API base URL
+  - _Requirements: 12_
+
+- [x] 8.2 Dashboard Module
+  - [x] Dashboard component with KPI cards (Total Value, Health Rate, Capital at Risk)
+  - [x] Map component with Leaflet.js integration
+  - [x] Map service for pin management
+  - [x] KPI service for metrics calculation
+  - _Requirements: 11.1, 11.2_
+
+- [x] 8.3 Assets Module
+  - [x] Assets list component with search
+  - [x] Asset service with CRUD operations
+  - [x] Status badges with French labels
+  - _Requirements: 2_
+
+- [x] 8.4 Incidents Module
+  - [x] Incident log component with QR scanner
+  - [x] GPS accuracy indicator (15m threshold)
+  - [x] Image upload with 800KB limit
+  - [x] Incident service for API integration
+  - _Requirements: 3, 6, 14_
+
+- [x] 8.5 Offline PWA Support
+  - [x] PWA manifest with icons and installable
+  - [x] Service Worker configuration
+  - [x] Offline service for local storage
+  - [x] Sync service for auto-upload
+  - [x] Offline indicator banner
+  - _Requirements: 7_
+
+- [x] 8.6 QR Scanner Component
+  - [x] QR scanner using html5-qrcode
+  - [x] Visual scanner overlay
+  - [x] Success/error event handling
+  - _Requirements: 6.2_
+
+- [x] 8.7 Shared Services
+  - [x] OfflineService - Local storage operations
+  - [x] SyncService - Auto sync coordination
+  - [x] MapService - Map pin management
+  - [x] KpiService - KPI calculations
+  - [x] AssetService - Asset CRUD operations
+  - [x] IncidentService - Incident workflow
+  - _Requirements: All_
+
+### Phase 9: Frontend Components to Complete ⏳ TODO
+
+- [ ] 9.1 Tasks Module
+  - [ ] Tasks list component
+  - [ ] Task assignment UI for Logistics Officer
+  - [ ] Task detail view
+  - _Requirements: 14.3_
+
+- [ ] 9.2 Settings Module
+  - [ ] User profile settings
+  - [ ] MFA configuration
+  - [ ] Notification preferences
+  - _Requirements: 10.6_
+
+- [ ] 9.3 Reports Module
+  - [ ] Report generation UI
+  - [ ] PDF export functionality
+  - [ ] Excel export functionality
+  - [ ] CSV export functionality
+  - _Requirements: 9.1, 9.2_
+
+- [ ] 9.4 Authentication UI
+  - [ ] Login component
+  - [ ] Invite-only registration form
+  - [ ] MFA verification UI (TOTP, SMS, Email OTP)
+  - _Requirements: 10.1, 10.2, 10.6_
+
+- [ ] 9.5 Asset Detail Component
+  - [ ] Asset details view
+  - [ ] Asset edit form
+  - [ ] Asset photos/attachments display
+  - _Requirements: 2.1, 2.4, 8_
+
+- [ ] 9.6 Asset Onboarding Form
+  - [ ] Asset registration form
+  - [ ] 3-tier category selector
+  - [ ] Parent-child relationship selector
+  - [ ] QR code preview
+  - _Requirements: 15.2, 15.4, 15.5, 15.6_
+
+- [ ] 9.7 Incident History Component
+  - [ ] Incident history timeline
+  - [ ] Ledger entries display
+  - [ ] Asset status changes history
+  - _Requirements: 14.6_
+
+### Phase 10: Localization (French) ⏳ TODO
+
+- [ ] 10.1 French Translations
+  - [ ] Create French translation files (fr.json)
+  - [ ] Implement translation service with fallback
+  - [ ] Translate all UI text to French
+  - _Requirements: 13.1_
+
+- [ ] 10.2 Export Localization
+  - [ ] French labels in PDF exports
+  - [ ] French headers in Excel exports
+  - [ ] French headers in CSV exports
+  - _Requirements: 13.2_
+
+- [ ] 10.3 Error Messages
+  - [ ] Translate all error messages to French
+  - _Requirements: 13.3_
+
+### Phase 11: Testing (Frontend) ⏳ TODO
+
+- [ ] 11.1 Unit Tests
+  - [ ] Test all components with Jest
+  - [ ] Test services with Jest
+  - _Requirements: All_
+
+- [ ] 11.2 E2E Tests
+  - [ ] Test complete user workflows with Cypress
+  - [ ] Test offline sync behavior
+  - _Requirements: All_
+
+### Phase 12: Deployment ⏳ TODO
+
+- [ ] 12.1 Frontend Build and Deploy
+  - [ ] Configure production build (ng build --configuration=production)
+  - [ ] Deploy to shared hosting or CDN
+  - [ ] Configure API base URL to backend
+  - _Requirements: 12_
+
+- [ ] 12.2 Backend-Frontend Integration
+  - [ ] Configure CORS on backend for frontend origin
+  - [ ] Set up shared `.env` configuration accessible by both projects
+  - _Requirements: 12.4_
+
+## Implementation Status
+
+| Phase | Status | Notes |
+|-------|--------|-------|
+| Backend Infrastructure | ✅ Complete | Laravel app, services, controllers stubbed |
+| Backend Database | ⏳ Pending | Missing: inspections, ledgers, task_queues, attachments, categories |
+| Backend Models | ⏳ Pending | Need 6 Eloquent models |
+| Backend API Endpoints | ⏳ Pending | Complete controllers with real DB |
+| Backend Auth & Security | ⏳ Pending | Sanctum, rate limiting, RBAC |
+| Frontend Structure | ✅ Complete | Angular 16 PWA, all routes configured |
+| Frontend Components | ⏳ Partial | Dashboard, Assets, Incidents done; Tasks, Settings, Reports pending |
+| Frontend Localization | ⏳ Pending | French translations needed |
+| Frontend Testing | ⏳ Optional | Unit and E2E tests |
 
 ## Notes
 
+- Tasks marked with `✅` are completed
+- Tasks marked with `⏳` are pending
 - Tasks marked with `*` are optional and can be skipped for faster MVP
 - Each task references specific requirements for traceability
-- Property-based tests validate universal correctness properties
-- Unit tests validate specific examples and edge cases
-- Integration tests validate system behavior across components
-- All backend code must comply with PHP 8.2+ and MySQL 8.0+ requirements
-- All frontend code must be compatible with Angular 16+ and progressive web app standards
-- [ ] 0. Project Structure and Separation
-  - [ ] 0.1 Create separate project folders
-    - [ ] Create `atims-be/` directory for PHP backend code
-    - [ ] Create `atims-ui/` directory for Angular frontend PWA code
-    - [ ] Create shared root `index.php` for routing to backend
-    - [ ] Configure `.htaccess` in root to route `/api/*` to `atims-be/` and other routes to `atims-ui/`
-    - [ ] Set up shared `.env` configuration accessible by both projects
-    - _Requirements: 12.4 (Shared Hosting), 12.5 (Dedicated Server)_
-  
-  - [ ] 0.2 PHP Backend Structure (`atims-be/`)
-    - [ ] Create `atims-be/src/Models/` for data models
-    - [ ] Create `atims-be/src/Services/` for business logic (HaversineService, ImageService, QrCodeService, etc.)
-    - [ ] Create `atims-be/src/Middleware/` for auth, rate limiting, RBAC
-    - [ ] Create `atims-be/src/routes.php` for API endpoint definitions
-    - [ ] Create `atims-be/public/` for API entry points
-    - [ ] Create `atims-be/storage/` for uploads, logs, cache (outside web root)
-    - [ ] Create `atims-be/config/` for database and application configuration
-    - _Requirements: 12.4, 12.5_
-  
-  - [ ] 0.3 Angular Frontend Structure (`atims-ui/`)
-    - [ ] Generate Angular project with structure: `src/app/core/`, `src/app/shared/`, `src/app/features/`
-    - [ ] Create feature modules: `incidents/`, `dashboard/`, `assets/`, `tasks/`, `reports/`
-    - [ ] Set up PWA manifest and service worker configuration
-    - [ ] Configure API base URL to `../atims-be/public/api/`
-    - _Requirements: 12.4, 12.5_
-  
-  - [ ] 0.4 Shared Resources
-    - [ ] Create shared `shared/` directory for common constants (French translations, API error codes)
-    - [ ] Set up shared database connection configuration accessible by both projects
-    - [ ] Configure shared `.env.example` for deployment guidance
-    - _Requirements: 12.4, 12.5_
-  
-  - [ ] 0.5 Deployment Configuration
-    - [ ] Create shared hosting deployment structure in `atims-be/` and `atims-ui/`
-    - [ ] Configure production deployment paths in `atims-be/config/db.php` and `atims-ui/src/environments/`
-    - _Requirements: 12.4, 12.5, 12.6_
-  
-- [ ] 1. Infrastructure and Database Setup
-- [ ] 2. Core Backend Services (atims-be/src/Services/)
-  - [ ] 2.1 Haversine Service
-    - [ ] Implement Haversine formula with Earth radius 6371km
-    - [ ] Add 15m GPS accuracy buffer validation
-    - [ ] Add 2.0km drift threshold check with breach protocol
-    - [ ] Add spatial distance calculation using MySQL ST_Distance_Sphere
-    - _Requirements: 4.2, 4.3, 14.4_
-  
-  - [ ] 2.2 Asset Repository
-    - [ ] Implement CRUD operations for assets table
-    - [ ] Implement parent-child relationship queries
-    - [ ] Implement 3-tier category hierarchy validation
-    - [ ] Implement spatial point generation from coordinates
-    - _Requirements: 2.1, 2.2, 2.3, 2.4_
+- Backend implementation should use Laravel best practices and PSR-12 coding standard
+- All database tables must use MySQL 8.0+ spatial geometry functions
+- All API responses should use standardized format with success/error states
+- Frontend uses Angular 16 with PWA support, Leaflet.js for maps, html5-qrcode for QR scanning
