@@ -1,7 +1,0 @@
-{
-  "version": 3,
-  "sources": ["angular:styles/component:css;e782fa6d31cc36f0;C:\\xampp\\htdocs\\atims\\atims-ui\\src\\app\\features\\dashboard\\map.component.ts"],
-  "sourcesContent": ["\n    .map-container {\n      height: 100%;\n      width: 100%;\n    }\n  "],
-  "mappings": ";AACI,CAAC;AACC,UAAQ;AACR,SAAO;AACT;",
-  "names": []
-}
