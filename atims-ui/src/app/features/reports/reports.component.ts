@@ -3,8 +3,8 @@ import { FormBuilder, FormGroup } from '@angular/forms';
 import { ReportService } from './report.service';
 
 @Component({
-  selector: 'app-reports',
-  template: `
+    selector: 'app-reports',
+    template: `
     <div class="container">
       <h1>Générateur de Rapports</h1>
       
@@ -98,7 +98,8 @@ import { ReportService } from './report.service';
         </div>
       </div>
     </div>
-  `
+  `,
+    standalone: false
 })
 export class ReportsComponent implements OnInit {
   reportForm!: FormGroup;

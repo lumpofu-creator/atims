@@ -1,16 +1,17 @@
 import { Component } from '@angular/core';
 
 @Component({
-  selector: 'app-root',
-  template: `
+    selector: 'app-root',
+    template: `
     <router-outlet></router-outlet>
   `,
-  styles: [`
+    styles: [`
     :host {
       display: block;
       min-height: 100vh;
     }
-  `]
+  `],
+    standalone: false
 })
 export class AppComponent {
   title = 'ATIMS';

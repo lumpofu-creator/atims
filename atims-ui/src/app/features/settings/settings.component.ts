@@ -3,8 +3,8 @@ import { FormBuilder, FormGroup } from '@angular/forms';
 import { UserService } from './user.service';
 
 @Component({
-  selector: 'app-settings',
-  template: `
+    selector: 'app-settings',
+    template: `
     <div class="container">
       <h1>Paramètres</h1>
       
@@ -106,7 +106,8 @@ import { UserService } from './user.service';
         </div>
       </div>
     </div>
-  `
+  `,
+    standalone: false
 })
 export class SettingsComponent implements OnInit {
   profileForm!: FormGroup;

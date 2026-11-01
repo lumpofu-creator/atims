@@ -2,8 +2,8 @@ import { Component, OnInit } from '@angular/core';
 import { TaskService } from './task.service';
 
 @Component({
-  selector: 'app-tasks',
-  template: `
+    selector: 'app-tasks',
+    template: `
     <div class="container">
       <h1>Gestion des Tâches</h1>
       
@@ -82,7 +82,8 @@ import { TaskService } from './task.service';
         </div>
       </div>
     </div>
-  `
+  `,
+    standalone: false
 })
 export class TasksComponent implements OnInit {
   activeTab = 'assigned';
