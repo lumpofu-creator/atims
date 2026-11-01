@@ -7,7 +7,7 @@ import { UserService } from './user.service';
     template: `
     <div class="container">
       <h1>Paramètres</h1>
-      
+    
       <div class="row">
         <div class="col-md-6">
           <!-- Profile Settings -->
@@ -33,7 +33,7 @@ import { UserService } from './user.service';
               </form>
             </div>
           </div>
-          
+    
           <!-- MFA Settings -->
           <div class="card mb-3">
             <div class="card-header d-flex justify-content-between align-items-center">
@@ -46,16 +46,20 @@ import { UserService } from './user.service';
               <p class="text-muted">
                 Ajoutez une couche de sécurité supplémentaire à votre compte.
               </p>
-              <button *ngIf="!mfaEnabled" class="btn btn-primary" (click)="enableMFA()">
-                Activer MFA
-              </button>
-              <button *ngIf="mfaEnabled" class="btn btn-danger" (click)="disableMFA()">
-                Désactiver MFA
-              </button>
+              @if (!mfaEnabled) {
+                <button class="btn btn-primary" (click)="enableMFA()">
+                  Activer MFA
+                </button>
+              }
+              @if (mfaEnabled) {
+                <button class="btn btn-danger" (click)="disableMFA()">
+                  Désactiver MFA
+                </button>
+              }
             </div>
           </div>
         </div>
-        
+    
         <div class="col-md-6">
           <!-- Notification Settings -->
           <div class="card mb-3">
@@ -83,7 +87,7 @@ import { UserService } from './user.service';
               </div>
             </div>
           </div>
-          
+    
           <!-- Preferences -->
           <div class="card mb-3">
             <div class="card-header">
@@ -99,14 +103,14 @@ import { UserService } from './user.service';
               </div>
             </div>
           </div>
-          
+    
           <button class="btn btn-outline-danger" (click)="logout()">
-                Déconnexion
+            Déconnexion
           </button>
         </div>
       </div>
     </div>
-  `,
+    `,
     standalone: false
 })
 export class SettingsComponent implements OnInit {

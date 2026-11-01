@@ -6,83 +6,93 @@ import { TaskService } from './task.service';
     template: `
     <div class="container">
       <h1>Gestion des Tâches</h1>
-      
+    
       <!-- Tabs -->
       <div class="tabs mb-3">
         <button class="btn btn-primary" (click)="activeTab = 'assigned'">Mes Tâches</button>
         <button class="btn btn-outline-primary" (click)="activeTab = 'global'">File d'Attente Globale</button>
       </div>
-      
+    
       <!-- Assigned Tasks -->
-      <div *ngIf="activeTab === 'assigned'" class="card">
-        <div class="card-body">
-          <h3>Mes Tâches Assignées</h3>
-          <table class="table" *ngIf="assignedTasks?.length; else noTasks">
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Actif</th>
-                <th>Statut</th>
-                <th>Date d'échéance</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr *ngFor="let task of assignedTasks">
-                <td>{{ task.id }}</td>
-                <td>{{ task.asset_name }}</td>
-                <td>
-                  <span class="badge" [class]="'bg-' + getTaskStatusColor(task.status)">{{ task.status }}</span>
-                </td>
-                <td>{{ task.due_date | date:'shortDate' }}</td>
-                <td>
-                  <button class="btn btn-sm btn-primary" (click)="viewTask(task.id)">
-                    Voir
-                  </button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-          <ng-template #noTasks>
-            <p>Aucune tâche assignée.</p>
-          </ng-template>
+      @if (activeTab === 'assigned') {
+        <div class="card">
+          <div class="card-body">
+            <h3>Mes Tâches Assignées</h3>
+            @if (assignedTasks?.length) {
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Actif</th>
+                    <th>Statut</th>
+                    <th>Date d'échéance</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (task of assignedTasks; track task) {
+                    <tr>
+                      <td>{{ task.id }}</td>
+                      <td>{{ task.asset_name }}</td>
+                      <td>
+                        <span class="badge" [class]="'bg-' + getTaskStatusColor(task.status)">{{ task.status }}</span>
+                      </td>
+                      <td>{{ task.due_date | date:'shortDate' }}</td>
+                      <td>
+                        <button class="btn btn-sm btn-primary" (click)="viewTask(task.id)">
+                          Voir
+                        </button>
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            } @else {
+              <p>Aucune tâche assignée.</p>
+            }
+          </div>
         </div>
-      </div>
-      
+      }
+    
       <!-- Global Queue -->
-      <div *ngIf="activeTab === 'global'" class="card">
-        <div class="card-body">
-          <h3>File d'Attente Globale</h3>
-          <p class="text-muted">Tâches non assignées</p>
-          <table class="table" *ngIf="globalQueue?.length; else noGlobalTasks">
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Actif</th>
-                <th>Créé le</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr *ngFor="let task of globalQueue">
-                <td>{{ task.id }}</td>
-                <td>{{ task.asset_name }}</td>
-                <td>{{ task.created_at | date:'short' }}</td>
-                <td>
-                  <button class="btn btn-sm btn-success" (click)="assignTask(task.id)">
-                    Assigner
-                  </button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-          <ng-template #noGlobalTasks>
-            <p>Aucune tâche dans la file d'attente.</p>
-          </ng-template>
+      @if (activeTab === 'global') {
+        <div class="card">
+          <div class="card-body">
+            <h3>File d'Attente Globale</h3>
+            <p class="text-muted">Tâches non assignées</p>
+            @if (globalQueue?.length) {
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Actif</th>
+                    <th>Créé le</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (task of globalQueue; track task) {
+                    <tr>
+                      <td>{{ task.id }}</td>
+                      <td>{{ task.asset_name }}</td>
+                      <td>{{ task.created_at | date:'short' }}</td>
+                      <td>
+                        <button class="btn btn-sm btn-success" (click)="assignTask(task.id)">
+                          Assigner
+                        </button>
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            } @else {
+              <p>Aucune tâche dans la file d'attente.</p>
+            }
+          </div>
         </div>
-      </div>
+      }
     </div>
-  `,
+    `,
     standalone: false
 })
 export class TasksComponent implements OnInit {

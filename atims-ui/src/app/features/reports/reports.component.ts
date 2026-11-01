@@ -7,7 +7,7 @@ import { ReportService } from './report.service';
     template: `
     <div class="container">
       <h1>Générateur de Rapports</h1>
-      
+    
       <div class="card">
         <div class="card-body">
           <form [formGroup]="reportForm" (ngSubmit)="generateReport()">
@@ -21,7 +21,7 @@ import { ReportService } from './report.service';
                 <option value="asset-status">Statut des Actifs</option>
               </select>
             </div>
-            
+    
             <!-- Department Filter -->
             <div class="mb-3">
               <label for="department" class="form-label">Département/Ministère</label>
@@ -33,7 +33,7 @@ import { ReportService } from './report.service';
                 <option value="infrastructure">Infrastructures</option>
               </select>
             </div>
-            
+    
             <!-- Status Filter -->
             <div class="mb-3">
               <label for="status" class="form-label">Statut de l'actif</label>
@@ -45,7 +45,7 @@ import { ReportService } from './report.service';
                 <option value="Inconnu">Inconnu</option>
               </select>
             </div>
-            
+    
             <!-- Date Range -->
             <div class="row mb-3">
               <div class="col-md-6">
@@ -57,7 +57,7 @@ import { ReportService } from './report.service';
                 <input type="date" class="form-control" id="endDate" formControlName="endDate" />
               </div>
             </div>
-            
+    
             <!-- Output Format -->
             <div class="mb-3">
               <label for="outputFormat" class="form-label">Format de sortie</label>
@@ -67,38 +67,41 @@ import { ReportService } from './report.service';
                 <option value="csv">CSV (Données brutes)</option>
               </select>
             </div>
-            
+    
             <!-- Generate Button -->
             <button type="submit" class="btn btn-primary">Générer le rapport</button>
           </form>
         </div>
       </div>
-      
+    
       <!-- Generated Reports -->
       <div class="card mt-4">
         <div class="card-header">
           <h5>Rapports Générés</h5>
         </div>
         <div class="card-body">
-          <div *ngIf="generatedReports?.length; else noReports">
-            <div class="list-group" *ngFor="let report of generatedReports">
-              <a href="{{ report.url }}" class="list-group-item list-group-item-action">
-                <div class="d-flex w-100 justify-content-between">
-                  <h5 class="mb-1">{{ report.name }}</h5>
-                  <small>{{ report.created_at | date:'short' }}</small>
+          @if (generatedReports?.length) {
+            <div>
+              @for (report of generatedReports; track report) {
+                <div class="list-group">
+                  <a href="{{ report.url }}" class="list-group-item list-group-item-action">
+                    <div class="d-flex w-100 justify-content-between">
+                      <h5 class="mb-1">{{ report.name }}</h5>
+                      <small>{{ report.created_at | date:'short' }}</small>
+                    </div>
+                    <p class="mb-1">{{ report.description }}</p>
+                    <small class="text-muted">Format: {{ report.format }}</small>
+                  </a>
                 </div>
-                <p class="mb-1">{{ report.description }}</p>
-                <small class="text-muted">Format: {{ report.format }}</small>
-              </a>
+              }
             </div>
-          </div>
-          <ng-template #noReports>
+          } @else {
             <p>Aucun rapport généré.</p>
-          </ng-template>
+          }
         </div>
       </div>
     </div>
-  `,
+    `,
     standalone: false
 })
 export class ReportsComponent implements OnInit {
