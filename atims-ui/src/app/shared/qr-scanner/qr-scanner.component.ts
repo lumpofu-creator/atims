@@ -99,7 +99,7 @@ export class QrScannerComponent implements OnInit, OnDestroy {
         // No action, just keep scanning
       }
     ).catch((error) => {
-      this.qrScanError.emit('Impossible d\'accéder à la caméra: ' + error);
+      this.qrScanError.emit('Unable to access the camera: ' + error);
     });
   }
   

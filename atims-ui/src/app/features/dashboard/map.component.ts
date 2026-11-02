@@ -1,126 +1,56 @@
-import { Component, OnInit, OnDestroy, ElementRef, Input } from '@angular/core';
-import * as L from 'leaflet';
-import { MapService } from './map.service';
+import { Component, Input } from '@angular/core';
 import { MapPin } from './map-pin.model';
+import { NgIf, NgFor } from '@angular/common';
 
 @Component({
   selector: 'app-map',
+  imports: [NgIf, NgFor],
   template: `
-    <div #mapContainer class="map-container"></div>
+    <div class="map-placeholder">
+      <h4>Map Placeholder</h4>
+      <p>Leaflet map would be displayed here</p>
+      <div class="pins-info" *ngIf="pinsInput.length">
+        <p>Pins to display: {{ pinsInput.length }}</p>
+        <ul>
+          <li *ngFor="let pin of pinsInput">
+            {{ pin.name }} ({{ getStatusLabel(pin.status) }}): {{ pin.latitude }}, {{ pin.longitude }}
+          </li>
+        </ul>
+      </div>
+    </div>
   `,
   styles: [`
-    .map-container {
-      height: 100%;
-      width: 100%;
+    .map-placeholder {
+      border: 1px solid var(--p-content-border-color);
+      border-radius: 8px;
+      padding: 16px;
+      background: var(--p-surface-card);
+    }
+    
+    .pins-info {
+      margin-top: 16px;
     }
   `]
 })
-export class MapComponent implements OnInit, OnDestroy {
-  private map!: L.Map;
-  private markers: Map<number, L.Marker> = new Map();
-  private icons: Map<string, L.Icon> = new Map();
-  
-  private currentPins: MapPin[] = [];
+export class MapComponent {
+  private _pins: MapPin[] = [];
 
   @Input()
   set pinsInput(value: MapPin[] | null | undefined) {
-    this.currentPins = Array.isArray(value) ? value : [];
-    if (this.map) {
-      this.updatePins();
-    }
+    this._pins = Array.isArray(value) ? value : [];
   }
 
   get pinsInput(): MapPin[] {
-    return this.currentPins;
+    return this._pins;
   }
-  
-  constructor(
-    private elRef: ElementRef,
-    private mapService: MapService
-  ) {}
-  
-  ngOnInit(): void {
-    this.createIcons();
-    this.initMap();
-  }
-  
-  ngOnDestroy(): void {
-    if (this.map) {
-      this.map.remove();
-    }
-  }
-  
-  private createIcons(): void {
-    // Green pin for Fonctionnel
-    this.icons.set('Fonctionnel', L.icon({
-      iconUrl: '/assets/icons/green-pin.svg',
-      iconSize: [25, 41],
-      iconAnchor: [12, 41],
-      popupAnchor: [1, -34],
-    }));
-    
-    // Red pin for En Panne
-    this.icons.set('En Panne', L.icon({
-      iconUrl: '/assets/icons/red-pin.svg',
-      iconSize: [25, 41],
-      iconAnchor: [12, 41],
-      popupAnchor: [1, -34],
-    }));
-    
-    // Gray pin for other statuses
-    this.icons.set('Déclassé', L.icon({
-      iconUrl: '/assets/icons/gray-pin.svg',
-      iconSize: [25, 41],
-      iconAnchor: [12, 41],
-      popupAnchor: [1, -34],
-    }));
-    
-    this.icons.set('Inconnu', this.icons.get('Déclassé')!);
-  }
-  
-  private initMap(): void {
-    this.map = L.map(this.elRef.nativeElement.querySelector('.map-container')).setView([48.8566, 2.3522], 13);
-    
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '© OpenStreetMap contributors',
-      maxZoom: 19
-    }).addTo(this.map);
-    
-    this.updatePins();
-  }
-  
-  private updatePins(): void {
-    // Remove pins not in new data
-    this.markers.forEach((marker, id) => {
-      if (!this.pinsInput.find(p => p.assetId === id)) {
-        this.map.removeLayer(marker);
-        this.markers.delete(id);
-      }
-    });
-    
-    // Add/update pins
-    this.pinsInput.forEach(pin => {
-      const existingPin = this.markers.get(pin.assetId);
-      
-      if (existingPin) {
-        // Update position if changed
-        const newPos = L.latLng(pin.latitude, pin.longitude);
-        if (!existingPin.getLatLng().equals(newPos)) {
-          existingPin.setLatLng(newPos);
-        }
-        
-        // Update icon if status changed
-        const newIcon = this.icons.get(pin.status) || this.icons.get('Inconnu')!;
-        existingPin.setIcon(newIcon);
-      } else {
-        const marker = L.marker([pin.latitude, pin.longitude], {
-          icon: this.icons.get(pin.status) || this.icons.get('Inconnu')!
-        }).addTo(this.map);
-        
-        marker.bindTooltip(`${pin.name} (${pin.status})`);
-        
-        this.markers.set(pin.assetId, marker);
-      }
-    });
+
+  getStatusLabel(status: string): string {
+    const labels: Record<string, string> = {
+      'Fonctionnel': 'Functional',
+      'En Panne': 'Out of Service',
+      'Déclassé': 'Decommissioned',
+      'Inconnu': 'Unknown'
+    };
+    return labels[status] ?? status;
   }
 }

@@ -6,7 +6,7 @@ import { UserService } from './user.service';
     selector: 'app-settings',
     template: `
     <div class="container">
-      <h1>Paramètres</h1>
+      <h1>Settings</h1>
     
       <div class="row">
         <div class="col-md-6">
@@ -18,7 +18,7 @@ import { UserService } from './user.service';
             <div class="card-body">
               <form [formGroup]="profileForm" (ngSubmit)="updateProfile()">
                 <div class="mb-3">
-                  <label for="username" class="form-label">Nom d'utilisateur</label>
+                  <label for="username" class="form-label">Username</label>
                   <input type="text" class="form-control" id="username" formControlName="username" />
                 </div>
                 <div class="mb-3">
@@ -26,10 +26,10 @@ import { UserService } from './user.service';
                   <input type="email" class="form-control" id="email" formControlName="email" />
                 </div>
                 <div class="mb-3">
-                  <label for="phone" class="form-label">Téléphone</label>
+                  <label for="phone" class="form-label">Phone</label>
                   <input type="tel" class="form-control" id="phone" formControlName="phone" />
                 </div>
-                <button type="submit" class="btn btn-primary">Sauvegarder</button>
+                <button type="submit" class="btn btn-primary">Save</button>
               </form>
             </div>
           </div>
@@ -37,23 +37,23 @@ import { UserService } from './user.service';
           <!-- MFA Settings -->
           <div class="card mb-3">
             <div class="card-header d-flex justify-content-between align-items-center">
-              <h5>Authentification à 2 facteurs (MFA)</h5>
+              <h5>Two-Factor Authentication (MFA)</h5>
               <span class="badge bg-{{ mfaEnabled ? 'success' : 'secondary' }}">
-                {{ mfaEnabled ? 'Activé' : 'Désactivé' }}
+                {{ mfaEnabled ? 'Enabled' : 'Disabled' }}
               </span>
             </div>
             <div class="card-body">
               <p class="text-muted">
-                Ajoutez une couche de sécurité supplémentaire à votre compte.
+                Add an extra layer of security to your account.
               </p>
               @if (!mfaEnabled) {
                 <button class="btn btn-primary" (click)="enableMFA()">
-                  Activer MFA
+                  Enable MFA
                 </button>
               }
               @if (mfaEnabled) {
                 <button class="btn btn-danger" (click)="disableMFA()">
-                  Désactiver MFA
+                  Disable MFA
                 </button>
               }
             </div>
@@ -70,19 +70,19 @@ import { UserService } from './user.service';
               <div class="form-check mb-2">
                 <input class="form-check-input" type="checkbox" id="emailNotifications" [(ngModel)]="emailNotifications" />
                 <label class="form-check-label" for="emailNotifications">
-                  Notifications par email
+                  Email Notifications
                 </label>
               </div>
               <div class="form-check mb-2">
                 <input class="form-check-input" type="checkbox" id="pushNotifications" [(ngModel)]="pushNotifications" />
                 <label class="form-check-label" for="pushNotifications">
-                  Notifications push
+                  Push Notifications
                 </label>
               </div>
               <div class="form-check">
                 <input class="form-check-input" type="checkbox" id="smsNotifications" [(ngModel)]="smsNotifications" />
                 <label class="form-check-label" for="smsNotifications">
-                  Notifications SMS
+                  SMS Notifications
                 </label>
               </div>
             </div>
@@ -91,13 +91,12 @@ import { UserService } from './user.service';
           <!-- Preferences -->
           <div class="card mb-3">
             <div class="card-header">
-              <h5>Préférences</h5>
+              <h5>Preferences</h5>
             </div>
             <div class="card-body">
               <div class="mb-3">
-                <label for="language" class="form-label">Langue</label>
+                <label for="language" class="form-label">Language</label>
                 <select class="form-select" id="language" [(ngModel)]="language">
-                  <option value="fr">Français</option>
                   <option value="en">English</option>
                 </select>
               </div>
@@ -105,13 +104,13 @@ import { UserService } from './user.service';
           </div>
     
           <button class="btn btn-outline-danger" (click)="logout()">
-            Déconnexion
+            Log Out
           </button>
         </div>
       </div>
     </div>
     `,
-    changeDetection: ChangeDetectionStrategy.Eager,
+    changeDetection: ChangeDetectionStrategy.OnPush,
     standalone: false
 })
 export class SettingsComponent implements OnInit {
@@ -120,7 +119,7 @@ export class SettingsComponent implements OnInit {
   emailNotifications = true;
   pushNotifications = false;
   smsNotifications = false;
-  language = 'fr';
+  language = 'en';
   
   constructor(private fb: FormBuilder, private userService: UserService) {}
   
@@ -148,7 +147,7 @@ export class SettingsComponent implements OnInit {
   updateProfile(): void {
     if (this.profileForm.valid) {
       this.userService.updateProfile(this.profileForm.value).subscribe({
-        next: () => alert('Profil mis à jour'),
+        next: () => alert('Profile updated.'),
         error: (error) => console.error('Error updating profile:', error)
       });
     }

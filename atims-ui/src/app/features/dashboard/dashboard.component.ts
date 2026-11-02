@@ -10,56 +10,107 @@ import { MapPin } from './map-pin.model';
 @Component({
   selector: 'app-dashboard',
   imports: [CommonModule, MapComponent],
-  template: `
-    <div class="container">
-      <h1>Dashboard</h1>
-      
-      <!-- KPI Cards -->
-      <div class="kpi-container">
-        <div class="kpi-card">
-          <h3>Total Portfolio Value</h3>
-          <div class="value">
-            {{ kpis?.totalValue | currency:'EUR':'symbol':'1.0-0' }}
-          </div>
-        </div>
-        <div class="kpi-card">
-          <h3>Operational Health Rate</h3>
-          <div class="value">
-            {{ kpis?.healthRate | number:'1.1-1' }}%
-          </div>
-        </div>
-        <div class="kpi-card">
-          <h3>Capital at Risk</h3>
-          <div class="value" [class.text-danger]="(kpis?.capitalAtRisk ?? 0) > 0">
-            {{ kpis?.capitalAtRisk | currency:'EUR':'symbol':'1.0-0' }}
-          </div>
-        </div>
-      </div>
-      
-      <!-- Map Container -->
-      <div class="map-container">
-        <app-map [pinsInput]="(mapPins$ | async) ?? []"></app-map>
-      </div>
-      
-      <!-- Recent Inspections -->
-      <h2>Recent Inspections</h2>
-      <div *ngIf="inspections; else loading">
-        <div *ngFor="let inspection of inspections" class="card mb-2">
-          <div class="card-body">
-            <h5 class="card-title">{{ inspection.assetName }}</h5>
-            <p class="card-text">
-              Type: {{ inspection.inspectionType }} | 
-              Status: {{ inspection.conditionStatus }} | 
-              Date: {{ inspection.date | date:'short' }}
-            </p>
-          </div>
-        </div>
-      </div>
-      <ng-template #loading>
-        <div class="loading-spinner">Loading...</div>
-      </ng-template>
-    </div>
-  `
+  templateUrl: './dashboard.component.html',
+  styles: [`
+    .dashboard-kpis {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .dashboard-kpi {
+      min-width: 0;
+    }
+
+    .dashboard-kpi-card {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-height: 176px;
+      height: 100%;
+      padding: 1.5rem;
+      background: var(--surface-card, #fff);
+      border: 1px solid var(--surface-border, #e2e8f0);
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgb(15 23 42 / 4%);
+      transition: transform 160ms ease, box-shadow 160ms ease;
+    }
+
+    .dashboard-kpi-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgb(15 23 42 / 8%);
+    }
+
+    .dashboard-kpi-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+
+    .dashboard-kpi-label {
+      margin: 0 0 0.9rem;
+      color: var(--text-color-secondary, #64748b);
+      font-size: 1rem;
+      font-weight: 500;
+    }
+
+    .dashboard-kpi-value {
+      color: var(--text-color, #1e293b);
+      font-size: clamp(1.5rem, 2vw, 2rem);
+      font-weight: 600;
+      line-height: 1.2;
+      letter-spacing: -0.025em;
+    }
+
+    .dashboard-kpi-value--risk {
+      color: #e5484d;
+    }
+
+    .dashboard-kpi-icon {
+      display: grid;
+      width: 2.8rem;
+      height: 2.8rem;
+      flex: 0 0 2.8rem;
+      place-items: center;
+      border-radius: 10px;
+      font-size: 1.2rem;
+    }
+
+    .dashboard-kpi-icon--blue {
+      color: #2563eb;
+      background: #e8f0ff;
+    }
+
+    .dashboard-kpi-icon--green {
+      color: #059669;
+      background: #dcfce7;
+    }
+
+    .dashboard-kpi-icon--orange {
+      color: #ea580c;
+      background: #ffedd5;
+    }
+
+    .dashboard-kpi-caption {
+      margin: 1rem 0 0;
+      color: var(--text-color-secondary, #64748b);
+      font-size: 0.875rem;
+    }
+
+    @media (max-width: 1100px) {
+      .dashboard-kpis {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 640px) {
+      .dashboard-kpis {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+  `]
 })
 export class DashboardComponent implements OnInit, OnDestroy {
   kpis: Kpi | null = null;

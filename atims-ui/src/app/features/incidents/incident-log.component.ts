@@ -9,18 +9,18 @@ import { CommonModule } from '@angular/common';
   imports: [CommonModule, ReactiveFormsModule],
   template: `
     <div class="container">
-      <h1>Journaliser un Incident</h1>
+      <h1>Log an Incident</h1>
       
       <form [formGroup]="incidentForm" (ngSubmit)="onSubmit()">
         <!-- Asset Selection -->
         <div class="mb-3">
-          <label for="assetId" class="form-label">Actif</label>
+          <label for="assetId" class="form-label">Asset</label>
           <input 
             type="text" 
             class="form-control" 
             id="assetId"
             formControlName="assetId"
-            placeholder="Entrez l'ID d'état de l'actif (ex: FLEET-000123)"
+            placeholder="Enter the asset state ID (e.g. FLEET-000123)"
             [readonly]="scanning"
           />
           <button 
@@ -29,29 +29,29 @@ import { CommonModule } from '@angular/common';
             (click)="startQrScan()"
             [disabled]="scanning"
           >
-            {{ scanning ? 'Scan en cours...' : 'Scanner le QR Code' }}
+            {{ scanning ? 'Scanning...' : 'Scan QR Code' }}
           </button>
         </div>
         
         <!-- Condition Status -->
         <div class="mb-3">
-          <label for="conditionStatus" class="form-label">Statut</label>
+          <label for="conditionStatus" class="form-label">Status</label>
           <select 
             class="form-select" 
             id="conditionStatus"
             formControlName="conditionStatus"
           >
-            <option value="">Sélectionner...</option>
-            <option value="Fonctionnel">Fonctionnel</option>
-            <option value="En Panne">En Panne</option>
-            <option value="Déclassé">Déclassé</option>
-            <option value="Inconnu">Inconnu</option>
+            <option value="">Select...</option>
+            <option value="Fonctionnel">Functional</option>
+            <option value="En Panne">Out of Service</option>
+            <option value="Déclassé">Decommissioned</option>
+            <option value="Inconnu">Unknown</option>
           </select>
         </div>
         
         <!-- Field Notes -->
         <div class="mb-3">
-          <label for="fieldNotes" class="form-label">Notes de terrain</label>
+          <label for="fieldNotes" class="form-label">Field Notes</label>
           <textarea 
             class="form-control" 
             id="fieldNotes"
@@ -62,7 +62,7 @@ import { CommonModule } from '@angular/common';
         
         <!-- Defect Image Upload -->
         <div class="mb-3">
-          <label for="defectImage" class="form-label">Image du défaut</label>
+          <label for="defectImage" class="form-label">Defect Image</label>
           <input 
             type="file" 
             class="form-control" 
@@ -79,7 +79,7 @@ import { CommonModule } from '@angular/common';
         
         <!-- GPS Accuracy Indicator -->
         <div class="mb-3">
-          <label class="form-label">Précision GPS</label>
+          <label class="form-label">GPS Accuracy</label>
           <div class="d-flex align-items-center">
             <div class="progress flex-grow-1 me-2" style="height: 20px;">
               <div 
@@ -96,7 +96,7 @@ import { CommonModule } from '@angular/common';
             <span class="text-muted">Max: 15m</span>
           </div>
           <small class="form-text text-muted">
-            La précision GPS doit être inférieure à 15m pour soumettre l'inspection
+            GPS accuracy must be 15 m or better to submit the inspection.
           </small>
         </div>
         
@@ -106,7 +106,7 @@ import { CommonModule } from '@angular/common';
           class="btn btn-primary" 
           [disabled]="incidentForm.invalid || !canSubmit"
         >
-          Soumettre l'incident
+          Submit Incident
         </button>
       </form>
     </div>
@@ -153,7 +153,7 @@ export class IncidentLogComponent implements OnInit {
       
       // Validate file size (800KB limit for mobile)
       if (this.selectedFile.size > 800 * 1024) {
-        alert('L\'image est trop volumineuse. La taille maximale est de 800 KB.');
+        alert('The image is too large. The maximum size is 800 KB.');
         this.selectedFile = null;
         return;
       }
@@ -198,12 +198,12 @@ export class IncidentLogComponent implements OnInit {
       
       this.incidentService.logIncident(formData).subscribe({
         next: (response) => {
-          alert('Incident enregistré avec succès!');
+          alert('Incident submitted successfully.');
           this.incidentForm.reset();
         },
         error: (error) => {
           console.error('Error logging incident:', error);
-          alert('Erreur lors de l\'enregistrement de l\'incident');
+          alert('Unable to submit the incident.');
         }
       });
     }

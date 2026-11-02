@@ -1,9 +1,6 @@
 {
-  "name": "atims",
+  "name": "atims-sakai",
   "version": "1.0.0",
-  "description": "ATIMS Asset Tracking and Infrastructure Management System",
-  "author": "ATIMS Team",
-  "license": "MIT",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
@@ -21,12 +18,13 @@
     "@angular/forms": "^22.2.4",
     "@angular/platform-browser": "^22.2.4",
     "@angular/platform-browser-dynamic": "^22.2.4",
-    "@angular/pwa": "^16.2.0",
     "@angular/router": "^22.2.4",
-    "@angular/service-worker": "^22.2.4",
-    "leaflet": "^1.9.4",
-    "@asymmetrik/ngx-leaflet": "^16.0.1",
+    "@primeuix/themes": "^2.0.2",
     "html5-qrcode": "^2.3.8",
+    "leaflet": "^1.9.4",
+    "primeflex": "^4.0.0",
+    "primeicons": "^8.0.2",
+    "primeng": "^22.1.4",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",
     "zone.js": "~0.15.1"

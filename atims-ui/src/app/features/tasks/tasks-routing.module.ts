@@ -6,7 +6,7 @@ const routes: Routes = [
   {
     path: '',
     component: TasksComponent,
-    data: { title: 'Gestion des Tâches' }
+    data: { title: 'Task Management' }
   }
 ];
 

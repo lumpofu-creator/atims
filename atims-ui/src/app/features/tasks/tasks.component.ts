@@ -5,27 +5,27 @@ import { TaskService } from './task.service';
     selector: 'app-tasks',
     template: `
     <div class="container">
-      <h1>Gestion des Tâches</h1>
+      <h1>Task Management</h1>
     
       <!-- Tabs -->
       <div class="tabs mb-3">
-        <button class="btn btn-primary" (click)="activeTab = 'assigned'">Mes Tâches</button>
-        <button class="btn btn-outline-primary" (click)="activeTab = 'global'">File d'Attente Globale</button>
+        <button class="btn btn-primary" (click)="activeTab = 'assigned'">My Tasks</button>
+        <button class="btn btn-outline-primary" (click)="activeTab = 'global'">Global Queue</button>
       </div>
     
       <!-- Assigned Tasks -->
       @if (activeTab === 'assigned') {
         <div class="card">
           <div class="card-body">
-            <h3>Mes Tâches Assignées</h3>
-            @if (assignedTasks?.length) {
+            <h3>My Assigned Tasks</h3>
+            @if (assignedTasks.length) {
               <table class="table">
                 <thead>
                   <tr>
                     <th>ID</th>
-                    <th>Actif</th>
-                    <th>Statut</th>
-                    <th>Date d'échéance</th>
+                    <th>Asset</th>
+                    <th>Status</th>
+                    <th>Due Date</th>
                     <th>Actions</th>
                   </tr>
                 </thead>
@@ -48,7 +48,7 @@ import { TaskService } from './task.service';
                 </tbody>
               </table>
             } @else {
-              <p>Aucune tâche assignée.</p>
+              <p>No tasks are assigned to you.</p>
             }
           </div>
         </div>
@@ -58,15 +58,15 @@ import { TaskService } from './task.service';
       @if (activeTab === 'global') {
         <div class="card">
           <div class="card-body">
-            <h3>File d'Attente Globale</h3>
-            <p class="text-muted">Tâches non assignées</p>
-            @if (globalQueue?.length) {
+            <h3>Global Queue</h3>
+            <p class="text-muted">Unassigned Tasks</p>
+            @if (globalQueue.length) {
               <table class="table">
                 <thead>
                   <tr>
                     <th>ID</th>
-                    <th>Actif</th>
-                    <th>Créé le</th>
+                    <th>Asset</th>
+                    <th>Created</th>
                     <th>Actions</th>
                   </tr>
                 </thead>
@@ -86,14 +86,14 @@ import { TaskService } from './task.service';
                 </tbody>
               </table>
             } @else {
-              <p>Aucune tâche dans la file d'attente.</p>
+              <p>The queue is empty.</p>
             }
           </div>
         </div>
       }
     </div>
     `,
-    changeDetection: ChangeDetectionStrategy.Eager,
+    changeDetection: ChangeDetectionStrategy.OnPush,
     standalone: false
 })
 export class TasksComponent implements OnInit {

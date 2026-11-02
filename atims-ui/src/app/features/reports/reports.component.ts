@@ -6,70 +6,70 @@ import { ReportService } from './report.service';
     selector: 'app-reports',
     template: `
     <div class="container">
-      <h1>Générateur de Rapports</h1>
+      <h1>Report Generator</h1>
     
       <div class="card">
         <div class="card-body">
           <form [formGroup]="reportForm" (ngSubmit)="generateReport()">
             <!-- Report Type -->
             <div class="mb-3">
-              <label for="reportType" class="form-label">Type de rapport</label>
+              <label for="reportType" class="form-label">Report Type</label>
               <select class="form-select" id="reportType" formControlName="reportType">
-                <option value="asset-inventory">Inventaire des Actifs</option>
-                <option value="incident-summary">Résumé des Incidents</option>
-                <option value="inspection-history">Historique des Inspections</option>
-                <option value="asset-status">Statut des Actifs</option>
+                <option value="asset-inventory">Asset Inventory</option>
+                <option value="incident-summary">Incident Summary</option>
+                <option value="inspection-history">Inspection History</option>
+                <option value="asset-status">Asset Status</option>
               </select>
             </div>
     
             <!-- Department Filter -->
             <div class="mb-3">
-              <label for="department" class="form-label">Département/Ministère</label>
+              <label for="department" class="form-label">Department / Ministry</label>
               <select class="form-select" id="department" formControlName="department">
-                <option value="">Tous les départements</option>
-                <option value="transport">Transports</option>
-                <option value="energy">Énergie</option>
-                <option value="water">Eau</option>
-                <option value="infrastructure">Infrastructures</option>
+                <option value="">All Departments</option>
+                <option value="transport">Transport</option>
+                <option value="energy">Energy</option>
+                <option value="water">Water</option>
+                <option value="infrastructure">Infrastructure</option>
               </select>
             </div>
     
             <!-- Status Filter -->
             <div class="mb-3">
-              <label for="status" class="form-label">Statut de l'actif</label>
+              <label for="status" class="form-label">Asset Status</label>
               <select class="form-select" id="status" formControlName="status">
-                <option value="">Tous les statuts</option>
-                <option value="Fonctionnel">Fonctionnel</option>
-                <option value="En Panne">En Panne</option>
-                <option value="Déclassé">Déclassé</option>
-                <option value="Inconnu">Inconnu</option>
+                <option value="">All Statuses</option>
+                <option value="Fonctionnel">Functional</option>
+                <option value="En Panne">Out of Service</option>
+                <option value="Déclassé">Decommissioned</option>
+                <option value="Inconnu">Unknown</option>
               </select>
             </div>
     
             <!-- Date Range -->
             <div class="row mb-3">
               <div class="col-md-6">
-                <label for="startDate" class="form-label">Date de début</label>
+                <label for="startDate" class="form-label">Start Date</label>
                 <input type="date" class="form-control" id="startDate" formControlName="startDate" />
               </div>
               <div class="col-md-6">
-                <label for="endDate" class="form-label">Date de fin</label>
+                <label for="endDate" class="form-label">End Date</label>
                 <input type="date" class="form-control" id="endDate" formControlName="endDate" />
               </div>
             </div>
     
             <!-- Output Format -->
             <div class="mb-3">
-              <label for="outputFormat" class="form-label">Format de sortie</label>
+              <label for="outputFormat" class="form-label">Output Format</label>
               <select class="form-select" id="outputFormat" formControlName="outputFormat">
-                <option value="pdf">PDF (Formulaire)</option>
+                <option value="pdf">PDF (Form)</option>
                 <option value="excel">Excel (.xlsx)</option>
-                <option value="csv">CSV (Données brutes)</option>
+                <option value="csv">CSV (Raw Data)</option>
               </select>
             </div>
     
             <!-- Generate Button -->
-            <button type="submit" class="btn btn-primary">Générer le rapport</button>
+            <button type="submit" class="btn btn-primary">Generate Report</button>
           </form>
         </div>
       </div>
@@ -77,10 +77,10 @@ import { ReportService } from './report.service';
       <!-- Generated Reports -->
       <div class="card mt-4">
         <div class="card-header">
-          <h5>Rapports Générés</h5>
+          <h5>Generated Reports</h5>
         </div>
         <div class="card-body">
-          @if (generatedReports?.length) {
+          @if (generatedReports.length) {
             <div>
               @for (report of generatedReports; track report) {
                 <div class="list-group">
@@ -96,13 +96,13 @@ import { ReportService } from './report.service';
               }
             </div>
           } @else {
-            <p>Aucun rapport généré.</p>
+            <p>No reports have been generated.</p>
           }
         </div>
       </div>
     </div>
     `,
-    changeDetection: ChangeDetectionStrategy.Eager,
+    changeDetection: ChangeDetectionStrategy.OnPush,
     standalone: false
 })
 export class ReportsComponent implements OnInit {
@@ -132,12 +132,12 @@ export class ReportsComponent implements OnInit {
     const formData = this.reportForm.value;
     this.reportService.generateReport(formData).subscribe({
       next: (response) => {
-        alert('Rapport généré avec succès');
+        alert('Report generated successfully.');
         this.loadGeneratedReports();
       },
       error: (error) => {
         console.error('Error generating report:', error);
-        alert('Erreur lors de la génération du rapport');
+        alert('Unable to generate the report.');
       }
     });
   }

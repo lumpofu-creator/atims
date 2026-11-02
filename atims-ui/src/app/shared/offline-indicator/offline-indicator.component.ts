@@ -12,8 +12,8 @@ import { OfflineService } from '../offline-sync/offline.service';
     >
       <div class="offline-banner-content">
         <span class="offline-icon">📡</span>
-        <span class="offline-text">Mode hors-ligne - Les données seront synchronisées automatiquement</span>
-        <button class="offline-btn" (click)="syncNow()">Synchroniser maintenant</button>
+        <span class="offline-text">You are offline. Your data will sync automatically when you reconnect.</span>
+        <button class="offline-btn" (click)="syncNow()">Sync now</button>
       </div>
     </div>
   `,

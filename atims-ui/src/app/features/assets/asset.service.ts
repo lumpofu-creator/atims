@@ -44,28 +44,29 @@ interface ApiInspection {
   providedIn: 'root'
 })
 export class AssetService {
-  private apiUrl = `${environment.apiBase}/assets`;
+  private apiUrl = `${environment.apiBase}`;
+  private apiUrlAssets = `${environment.apiBase}/assets`;
   
   constructor(private http: HttpClient) {}
   
   getAll(): Observable<Asset[]> {
-    return this.http.get<Asset[]>(this.apiUrl);
+    return this.http.get<Asset[]>(this.apiUrlAssets);
   }
   
   getById(id: number): Observable<Asset> {
-    return this.http.get<Asset>(`${this.apiUrl}/${id}`);
+    return this.http.get<Asset>(`${this.apiUrlAssets}/${id}`);
   }
   
   create(asset: Partial<Asset>): Observable<Asset> {
-    return this.http.post<Asset>(this.apiUrl, asset);
+    return this.http.post<Asset>(this.apiUrlAssets, asset);
   }
   
   update(id: number, asset: Partial<Asset>): Observable<Asset> {
-    return this.http.put<Asset>(`${this.apiUrl}/${id}`, asset);
+    return this.http.put<Asset>(`${this.apiUrlAssets}/${id}`, asset);
   }
   
   getMapPins(): Observable<MapPin[]> {
-    return this.http.get<ApiResponse<ApiMapPin[]>>('/api/dashboards/map-pins').pipe(
+    return this.http.get<ApiResponse<ApiMapPin[]>>(`${this.apiUrl}/dashboards/map-pins`).pipe(
       map(response => Array.isArray(response?.data)
         ? response.data.map(pin => ({
             assetId: pin.asset_id,
@@ -80,7 +81,7 @@ export class AssetService {
   
   getRecentInspections(): Observable<RecentInspection[]> {
     return this.http.get<ApiResponse<{ items: ApiInspection[] }>>(
-      '/api/inspections?limit=10&orderBy=created_at:desc'
+      `${this.apiUrl}/inspections?limit=10&orderBy=created_at:desc`
     ).pipe(
       map(response => Array.isArray(response?.data?.items)
         ? response.data.items.map(inspection => ({
@@ -95,6 +96,6 @@ export class AssetService {
   }
   
   search(searchTerm: string): Observable<Asset[]> {
-    return this.http.get<Asset[]>(`${this.apiUrl}/search?q=${searchTerm}`);
+    return this.http.get<Asset[]>(`${this.apiUrlAssets}/search?q=${searchTerm}`);
   }
 }
