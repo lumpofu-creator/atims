@@ -270,10 +270,11 @@ sequenceDiagram
 | Method | Endpoint | Description | Role | Authentication |
 |--------|----------|-------------|------|----------------|
 | POST | `/api/tasks/assign` | Assign incident to Field Agent | Logistics Officer | JWT |
+| POST | `/api/tasks/{task}/claim` | Claim task from global queue | Field Agent | JWT |
 | GET | `/api/tasks?agent_id={id}` | Get tasks for Field Agent | Field Agent | JWT |
 | PUT | `/api/tasks/{id}` | Update task status | Field Agent | JWT |
 | DELETE | `/api/tasks/{id}` | Cancel task | Logistics Officer | JWT |
-| GET | `/api/tasks/global-queue` | Get global task queue | Logistics Officer | JWT |
+| GET | `/api/tasks/global-queue` | Get global task queue | Field Agent | JWT |
 
 ### Dashboard Updates
 
@@ -361,6 +362,27 @@ sequenceDiagram
   "assigned_user_name": "Jean Dupont",
   "global_queue_position_removed": true,
   "message": "Task assigned to Field Agent"
+}
+```
+
+**Task Claim Request:**
+```json
+// No body required - task ID in path
+```
+
+**Task Claim Response:**
+```json
+{
+  "message": "Task claimed successfully",
+  "task": {
+    "id": 1025,
+    "task_type": "Incident Assignment",
+    "asset_id": 123,
+    "asset_name": "Dump Truck #45",
+    "status": "Assigned",
+    "assigned_user_id": 789,
+    "due_date": "2024-01-20"
+  }
 }
 ```
 

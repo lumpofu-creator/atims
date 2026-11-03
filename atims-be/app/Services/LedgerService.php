@@ -193,7 +193,7 @@ class LedgerService
                 'threshold_km' => 2.0,
                 'breach' => true,
             ],
-            auth()->id() ?? 0
+            auth()->id()
         );
 
         return $ledger;
@@ -205,7 +205,7 @@ class LedgerService
     public function recordRepairClosure(
         int $assetId,
         float $distanceKm,
-        int $userId
+        ?int $userId
     ): Ledger {
         $ledger = Ledger::record(
             'Repair Closure',

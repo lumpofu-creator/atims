@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
     'asset_id',
     'user_id',
     'inspection_log_id',
+    'incident_id',
     'ledger_event_id',
     'file_path',
     'file_name',
@@ -26,6 +27,7 @@ class Attachment extends Model
         'asset_id',
         'user_id',
         'inspection_log_id',
+        'incident_id',
         'ledger_event_id',
         'file_path',
         'file_name',
@@ -61,6 +63,11 @@ class Attachment extends Model
     public function inspectionLog(): BelongsTo
     {
         return $this->belongsTo(Inspection::class, 'inspection_log_id');
+    }
+
+    public function incident(): BelongsTo
+    {
+        return $this->belongsTo(Incident::class);
     }
 
     /**

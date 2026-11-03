@@ -1,8 +1,9 @@
-import { Component } from '@angular/core';
+import { Component, effect, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { MenuItem } from 'primeng/api';
 import { AppMenuitem } from './app.menuitem';
+import { AppPreferencesService } from '@/app/core/preferences/app-preferences.service';
 
 @Component({
     selector: 'app-menu',
@@ -20,31 +21,35 @@ import { AppMenuitem } from './app.menuitem';
 })
 export class AppMenu {
     model: MenuItem[] = [];
+    private preferences = inject(AppPreferencesService);
 
-    ngOnInit() {
+    constructor() {
+        effect(() => {
+            const t = (value: string) => this.preferences.translate(value);
         this.model = [
             {
-                label: 'Home',
-                items: [{ label: 'Dashboard', icon: 'pi pi-fw pi-home', routerLink: ['/dashboard'] }]
+                label: t('Home'),
+                items: [{ label: t('Dashboard'), icon: 'pi pi-fw pi-home', routerLink: ['/dashboard'] }]
             },
             {
-                label: 'Asset Management',
+                label: t('Asset Management'),
                 items: [
-                    { label: 'Assets', icon: 'pi pi-fw pi-box', routerLink: ['/assets'] },
-                    { label: 'Incidents', icon: 'pi pi-fw pi-exclamation-triangle', routerLink: ['/incidents'] }
+                    { label: t('Assets'), icon: 'pi pi-fw pi-box', routerLink: ['/assets'] },
+                    { label: t('Incidents'), icon: 'pi pi-fw pi-exclamation-triangle', routerLink: ['/incidents'] }
                 ]
             },
             {
-                label: 'Operations',
+                label: t('Operations'),
                 items: [
-                    { label: 'Tasks', icon: 'pi pi-fw pi-list', routerLink: ['/tasks'] },
-                    { label: 'Reports', icon: 'pi pi-fw pi-chart-bar', routerLink: ['/reports'] }
+                    { label: t('Tasks'), icon: 'pi pi-fw pi-list', routerLink: ['/tasks'] },
+                    { label: t('Reports'), icon: 'pi pi-fw pi-chart-bar', routerLink: ['/reports'] }
                 ]
             },
             {
-                label: 'System',
-                items: [{ label: 'Settings', icon: 'pi pi-fw pi-cog', routerLink: ['/settings'] }]
+                label: t('System'),
+                items: [{ label: t('Settings'), icon: 'pi pi-fw pi-cog', routerLink: ['/settings'] }]
             }
         ];
+        });
     }
 }

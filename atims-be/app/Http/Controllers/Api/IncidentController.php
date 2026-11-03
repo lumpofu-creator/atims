@@ -3,11 +3,16 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\Inspection;
 use App\Models\Asset;
+use App\Models\Incident;
+use App\Models\IncidentActivity;
+use App\Models\Ledger;
+use App\Models\TaskQueue;
+use App\Models\User;
 use App\Services\HaversineService;
 use App\Services\LedgerService;
 use DB;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use OpenApi\Attributes as OA;
@@ -15,6 +20,7 @@ use OpenApi\Attributes as OA;
 class IncidentController extends Controller
 {
     protected HaversineService $haversineService;
+
     protected LedgerService $ledgerService;
 
     public function __construct(HaversineService $haversineService, LedgerService $ledgerService)
@@ -54,40 +60,163 @@ class IncidentController extends Controller
             ),
         ]
     )]
+    public function index(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'page' => 'sometimes|integer|min:1',
+            'limit' => 'sometimes|integer|min:1|max:100',
+            'search' => 'sometimes|string|max:255',
+            'include_history' => 'sometimes|boolean',
+        ]);
+        $query = Incident::query()->with(['asset', 'assignedUser']);
+        if (! ($validated['include_history'] ?? false)) {
+            $query->whereIn('status', ['open', 'pending_forensic_clearance']);
+        }
+        if (! empty($validated['search'])) {
+            $term = $validated['search'];
+            $query->where(function (Builder $query) use ($term) {
+                $query->where('field_notes', 'like', "%{$term}%")
+                    ->orWhereHas('asset', function (Builder $assetQuery) use ($term) {
+                        $assetQuery->where('state_id', 'like', "%{$term}%")
+                            ->orWhere('name', 'like', "%{$term}%");
+                    });
+            });
+        }
+        $page = $query->latest()->paginate($validated['limit'] ?? 10, ['*'], 'page', $validated['page'] ?? 1);
+
+        return $this->success([
+            'items' => $page->getCollection()->map(fn (Incident $incident) => [
+                'id' => $incident->id,
+                'asset_id' => $incident->asset_id,
+                'state_id' => $incident->asset?->state_id ?? '',
+                'asset_name' => $incident->asset?->name ?? 'Deleted asset',
+                'field_notes' => $incident->field_notes,
+                'status' => $incident->status,
+                'reported_at' => $incident->created_at?->toISOString(),
+                'resolved_at' => $incident->resolved_at?->toISOString(),
+                'resolution_notes' => $incident->resolution_notes,
+                'assigned_user_id' => $incident->assigned_user_id,
+                'assigned_user_name' => $incident->assignedUser?->name,
+            ])->values(),
+            'pagination' => [
+                'total' => $page->total(), 'page' => $page->currentPage(),
+                'limit' => $page->perPage(), 'total_pages' => $page->lastPage(),
+            ],
+        ]);
+    }
+
     public function log(Request $request): JsonResponse
     {
         $validated = $request->validate([
             'qr_code_data' => 'required|string',
             'field_notes' => 'required|string|max:1000',
-            'defect_image' => 'nullable|string',
+            'device_latitude' => 'nullable|numeric|between:-90,90',
+            'device_longitude' => 'nullable|numeric|between:-180,180',
+            'device_timestamp' => 'nullable|date',
         ]);
-
-        // Find asset by state_id (from QR code)
         $asset = Asset::where('state_id', $validated['qr_code_data'])->first();
-
-        if (!$asset) {
+        if (! $asset) {
             return $this->notFound('Asset', $validated['qr_code_data']);
         }
 
-        // Update asset status to "En Panne"
-        $oldStatus = $asset->current_status;
-        $asset->update(['current_status' => 'En Panne']);
+        $incident = DB::transaction(function () use ($request, $validated, $asset) {
+            $incident = Incident::create([
+                'asset_id' => $asset->id,
+                'reported_by' => $request->user()?->id,
+                'field_notes' => $validated['field_notes'],
+                'status' => 'open',
+                'device_latitude' => $validated['device_latitude'] ?? null,
+                'device_longitude' => $validated['device_longitude'] ?? null,
+                'device_timestamp' => $validated['device_timestamp'] ?? null,
+            ]);
+            TaskQueue::create([
+                'task_type' => 'Incident Assignment',
+                'incident_id' => $incident->id,
+                'asset_id' => $asset->id,
+                'assigned_user_id' => null,
+                'status' => 'Pending',
+            ]);
+            $oldStatus = $asset->current_status;
+            $asset->update(['current_status' => 'En Panne']);
+            $this->ledgerService->recordEvent(
+                'Status Change', 'assets', $asset->id,
+                ['current_status' => $oldStatus], ['current_status' => 'En Panne'],
+                $request->user()?->id, $request
+            );
 
-        // Record status change in ledger
-        $this->ledgerService->recordEvent(
-            'Status Change',
-            'assets',
-            $asset->id,
-            ['current_status' => $oldStatus],
-            ['current_status' => 'En Panne'],
-            $request->user()->id,
-            $request
-        );
+            return $incident;
+        });
 
         return $this->created('Incident logged successfully', $asset->id, [
             'asset_id' => $asset->id,
+            'incident_id' => $incident->id,
             'new_status' => 'En Panne',
             'capital_at_risk' => $this->ledgerService->calculateCapitalAtRisk(),
+        ]);
+    }
+
+    public function assign(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'incident_ids' => 'required|array|min:1|max:100',
+            'incident_ids.*' => 'required|integer|distinct|exists:incidents,id',
+            'assigned_user_id' => 'required|integer|exists:users,id',
+        ]);
+
+        $agent = User::query()->where('role', 'Field Agent')->find($validated['assigned_user_id']);
+        if (!$agent) {
+            return $this->error('The selected user is not a Field Agent', 422);
+        }
+
+        $incidents = Incident::query()
+            ->whereIn('id', $validated['incident_ids'])
+            ->whereIn('status', ['open', 'pending_forensic_clearance'])
+            ->get();
+        if ($incidents->count() !== count($validated['incident_ids'])) {
+            return $this->error('One or more incidents are no longer open for assignment', 422);
+        }
+
+        DB::transaction(function () use ($incidents, $agent, $request) {
+            foreach ($incidents as $incident) {
+                $incident->update([
+                    'assigned_user_id' => $agent->id,
+                    'assigned_by_user_id' => $request->user()?->id,
+                ]);
+
+                $task = $incident->task;
+                if (!$task) {
+                    $task = TaskQueue::globalQueue()
+                        ->where('task_type', 'Incident Assignment')
+                        ->where('asset_id', $incident->asset_id)
+                        ->whereNull('incident_id')
+                        ->oldest()
+                        ->first();
+                }
+                if (!$task) {
+                    $task = new TaskQueue([
+                        'task_type' => 'Incident Assignment',
+                        'asset_id' => $incident->asset_id,
+                        'status' => 'Pending',
+                    ]);
+                }
+                $task->incident_id = $incident->id;
+                $task->asset_id = $incident->asset_id;
+                $task->save();
+                $task->assignTo($agent->id);
+                IncidentActivity::create([
+                    'incident_id' => $incident->id,
+                    'user_id' => $request->user()?->id,
+                    'entry_type' => 'assignment',
+                    'body' => 'Assigned to '.$agent->name,
+                ]);
+            }
+        });
+
+        return $this->success([
+            'message' => 'Incidents assigned successfully',
+            'assigned_count' => $incidents->count(),
+            'assigned_user_id' => $agent->id,
+            'assigned_user_name' => $agent->name,
         ]);
     }
 
@@ -131,71 +260,71 @@ class IncidentController extends Controller
     public function verify(Request $request): JsonResponse
     {
         $validated = $request->validate([
+            'incident_id' => 'sometimes|integer|exists:incidents,id',
             'qr_code_data' => 'required|string',
             'field_notes' => 'required|string|max:1000',
             'device_latitude' => 'required|numeric|between:-90,90',
             'device_longitude' => 'required|numeric|between:-180,180',
             'device_timestamp' => 'required|date',
         ]);
-
-        // Find asset by state_id
         $asset = Asset::where('state_id', $validated['qr_code_data'])->first();
-
-        if (!$asset) {
+        if (! $asset) {
             return $this->notFound('Asset', $validated['qr_code_data']);
         }
-
-        // Calculate Haversine distance
-        $distanceKm = $this->haversineService->calculateDistance(
-            $asset->latitude,
-            $asset->longitude,
-            $validated['device_latitude'],
-            $validated['device_longitude']
-        );
-
-        // Check geofence threshold (Requirement 4.2)
-        if ($this->haversineService->isGeofenceBreach($distanceKm)) {
-            // Write anomaly to ledger
-            $this->ledgerService->recordDriftAnomaly(
-                $asset->id,
-                $validated['device_latitude'],
-                $validated['device_longitude'],
-                (float) $asset->latitude,
-                (float) $asset->longitude,
-                $distanceKm
-            );
-
-            // Set status to pending forensic clearance
-            $asset->update(['current_status' => 'Pending Forensic Clearance']);
-
-            return $this->error(
-                'Location Drift Anomaly',
-                403,
-                [
-                    'distance_km' => $distanceKm,
-                    'threshold_km' => 2.0,
-                    'ledger_entry_id' => null,
-                    'message' => 'GPS coordinates exceed 2.0km threshold. Asset placed in "Pending Forensic Clearance" state.',
-                ]
-            );
+        $incident = isset($validated['incident_id'])
+            ? Incident::where('asset_id', $asset->id)->find($validated['incident_id'])
+            : Incident::where('asset_id', $asset->id)->whereIn('status', ['open', 'pending_forensic_clearance'])->latest()->first();
+        if (! $incident || ! in_array($incident->status, ['open', 'pending_forensic_clearance'], true)) {
+            return $this->error('No open incident was found for this asset', 404);
         }
 
-        // Update asset status to "Fonctionnel"
-        $oldStatus = $asset->current_status;
-        $asset->update(['current_status' => 'Fonctionnel']);
-
-        // Write repair closure ledger entry
-        $ledgerEntry = $this->ledgerService->recordRepairClosure(
-            $asset->id,
-            $distanceKm,
-            $request->user()->id
+        $distanceKm = $this->haversineService->calculateDistance(
+            (float) $asset->latitude, (float) $asset->longitude,
+            (float) $validated['device_latitude'], (float) $validated['device_longitude']
         );
+        $incident->forceFill([
+            'device_latitude' => $validated['device_latitude'],
+            'device_longitude' => $validated['device_longitude'],
+            'device_timestamp' => $validated['device_timestamp'],
+        ])->save();
+
+        if ($this->haversineService->isGeofenceBreach($distanceKm)) {
+            $this->ledgerService->recordDriftAnomaly(
+                $asset->id, (float) $validated['device_latitude'], (float) $validated['device_longitude'],
+                (float) $asset->latitude, (float) $asset->longitude, $distanceKm
+            );
+            // Asset status is constrained to the values accepted by AssetController.
+            // Keep the asset out of service; the incident record carries the review state.
+            $asset->update(['current_status' => 'En Panne']);
+            $incident->update(['status' => 'pending_forensic_clearance', 'resolution_notes' => $validated['field_notes']]);
+            IncidentActivity::create([
+                'incident_id' => $incident->id,
+                'user_id' => $request->user()?->id,
+                'entry_type' => 'status',
+                'body' => 'Location review required: GPS reading was '.round($distanceKm, 2).' km from the registered asset location.',
+            ]);
+
+            return $this->error('Location Drift Anomaly', 403, [
+                'distance_km' => $distanceKm,
+                'threshold_km' => HaversineService::GEOFENCE_THRESHOLD_KM,
+                'message' => 'GPS coordinates exceed '.HaversineService::GEOFENCE_THRESHOLD_KM.'km threshold. The incident is pending forensic clearance.',
+            ]);
+        }
+
+        $asset->update(['current_status' => 'Fonctionnel']);
+        $ledgerEntry = $this->ledgerService->recordRepairClosure($asset->id, $distanceKm, $request->user()?->id);
+        $incident->update([
+            'status' => 'resolved',
+            'resolution_notes' => $validated['field_notes'],
+            'resolved_by' => $request->user()?->id,
+            'resolved_at' => now(),
+        ]);
+        $incident->task?->complete();
 
         return $this->success([
-            'status' => 'Fonctionnel',
-            'ledger_entry_id' => $ledgerEntry->id,
-            'distance_from_base_km' => $distanceKm,
-            'message' => 'Asset verified and restored to Fonctionnel status',
+            'status' => 'Fonctionnel', 'incident_id' => $incident->id,
+            'ledger_entry_id' => $ledgerEntry->id, 'distance_from_base_km' => $distanceKm,
+            'message' => 'Incident resolved and asset restored to Fonctionnel status',
         ]);
     }
 
@@ -273,7 +402,7 @@ class IncidentController extends Controller
     {
         $asset = Asset::find($assetId);
 
-        if (!$asset) {
+        if (! $asset) {
             return $this->notFound('Asset', $assetId);
         }
 
@@ -295,7 +424,7 @@ class IncidentController extends Controller
             })->toArray();
 
         // Get ledger entries
-        $ledgers = \App\Models\Ledger::forRecord('assets', $assetId)
+        $ledgers = Ledger::forRecord('assets', $assetId)
             ->orderBy('created_at', 'desc')
             ->get()
             ->map(function ($ledger) {

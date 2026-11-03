@@ -3,9 +3,9 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\Attachment;
 use App\Models\Asset;
-use App\Models\Inspection;
+use App\Models\Attachment;
+use App\Models\Incident;
 use App\Services\ImageService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -65,13 +65,18 @@ class AttachmentController extends Controller
         $validated = $request->validate([
             'asset_id' => 'required|integer|exists:assets,id',
             'inspection_log_id' => 'nullable|integer|exists:inspections,id',
+            'incident_id' => 'nullable|integer|exists:incidents,id',
             'ledger_event_id' => 'nullable|integer|exists:ledgers,id',
             'file' => 'required|file|max:5120', // 5MB max
         ]);
 
         $asset = Asset::find($validated['asset_id']);
-        if (!$asset) {
+        if (! $asset) {
             return $this->notFound('Asset', $validated['asset_id']);
+        }
+
+        if (! empty($validated['incident_id']) && ! Incident::whereKey($validated['incident_id'])->where('asset_id', $asset->id)->exists()) {
+            return $this->error('Incident does not belong to this asset', 422);
         }
 
         $file = $request->file('file');
@@ -83,7 +88,7 @@ class AttachmentController extends Controller
         $allowedImageTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
         $allowedDocumentTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
 
-        if (!in_array($fileType, $allowedImageTypes) && !in_array($fileType, $allowedDocumentTypes)) {
+        if (! in_array($fileType, $allowedImageTypes) && ! in_array($fileType, $allowedDocumentTypes)) {
             return $this->error('Invalid file type. Allowed: images (.jpg, .jpeg, .png, .gif, .webp) and documents (.pdf, .docx)', 400);
         }
 
@@ -91,7 +96,7 @@ class AttachmentController extends Controller
         $maxSize = in_array($fileType, $allowedImageTypes) ? 800 * 1024 : 5 * 1024 * 1024;
 
         if ($fileSize > $maxSize) {
-            return $this->error("File too large. Maximum: " . ($maxSize / 1024 / 1024) . "MB", 400);
+            return $this->error('File too large. Maximum: '.($maxSize / 1024 / 1024).'MB', 400);
         }
 
         // Store file
@@ -105,8 +110,9 @@ class AttachmentController extends Controller
         // Create attachment record
         $attachment = Attachment::create([
             'asset_id' => $asset->id,
-            'user_id' => $request->user()->id,
+            'user_id' => $request->user()?->id,
             'inspection_log_id' => $validated['inspection_log_id'] ?? null,
+            'incident_id' => $validated['incident_id'] ?? null,
             'ledger_event_id' => $validated['ledger_event_id'] ?? null,
             'file_path' => $filePath,
             'file_name' => $fileName,
@@ -218,7 +224,7 @@ class AttachmentController extends Controller
     {
         $attachment = Attachment::with(['asset'])->find($id);
 
-        if (!$attachment) {
+        if (! $attachment) {
             return $this->notFound('Attachment', $id);
         }
 
@@ -227,15 +233,15 @@ class AttachmentController extends Controller
             return $this->forbidden('You do not have permission to view this attachment');
         }
 
-        $filePath = storage_path('app/' . $attachment->file_path);
+        $filePath = storage_path('app/'.$attachment->file_path);
 
-        if (!file_exists($filePath)) {
+        if (! file_exists($filePath)) {
             return $this->error('File not found on server', 404);
         }
 
         return response()->file($filePath, [
             'Content-Type' => $attachment->file_type,
-            'Content-Disposition' => 'inline; filename="' . $attachment->file_name . '"',
+            'Content-Disposition' => 'inline; filename="'.$attachment->file_name.'"',
         ]);
     }
 
@@ -267,7 +273,7 @@ class AttachmentController extends Controller
     {
         $attachment = Attachment::find($id);
 
-        if (!$attachment) {
+        if (! $attachment) {
             return $this->notFound('Attachment', $id);
         }
 
@@ -277,7 +283,7 @@ class AttachmentController extends Controller
         }
 
         // Delete file
-        $filePath = storage_path('app/' . $attachment->file_path);
+        $filePath = storage_path('app/'.$attachment->file_path);
         if (file_exists($filePath)) {
             unlink($filePath);
         }

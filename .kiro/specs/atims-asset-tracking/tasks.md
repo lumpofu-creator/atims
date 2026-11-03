@@ -88,7 +88,7 @@ This implementation plan covers all 15 functional requirements for the Asset Tra
   - _Requirements: 14.1, 14.2, 14.3, 14.4, 14.5, 14.6_
 
 - [x] 4.4 TaskController
-  - [x] Assign, index, global-queue, update, destroy
+  - [x] Assign, index, global-queue, claim, update, destroy
   - _Requirements: 14.3_
 
 - [x] 4.5 AttachmentController

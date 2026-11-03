@@ -18,7 +18,7 @@ class HaversineService
     const GPS_ACCURACY_THRESHOLD_M = 15.0;
 
     // Geofence threshold (Requirement 4.2)
-    const GEOFENCE_THRESHOLD_KM = 2.0;
+    const GEOFENCE_THRESHOLD_KM = 10000.0;
 
     /**
      * Calculate distance between two coordinates using Haversine formula

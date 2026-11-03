@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { Observable, Subscription } from 'rxjs';
 import { AssetService, RecentInspection } from '../assets/asset.service';
 import { KpiService } from './kpi.service';
@@ -6,10 +6,12 @@ import { Kpi } from './kpi.model';
 import { CommonModule } from '@angular/common';
 import { MapComponent } from './map.component';
 import { MapPin } from './map-pin.model';
+import { AppPreferencesService } from '../../core/preferences/app-preferences.service';
+import { TranslatePipe } from '../../core/preferences/translate.pipe';
 
 @Component({
   selector: 'app-dashboard',
-  imports: [CommonModule, MapComponent],
+  imports: [CommonModule, MapComponent, TranslatePipe],
   templateUrl: './dashboard.component.html',
   styles: [`
     .dashboard-kpis {
@@ -113,6 +115,7 @@ import { MapPin } from './map-pin.model';
   `]
 })
 export class DashboardComponent implements OnInit, OnDestroy {
+  readonly preferences = inject(AppPreferencesService);
   kpis: Kpi | null = null;
   mapPins$!: Observable<MapPin[]>;
   inspections: RecentInspection[] = [];

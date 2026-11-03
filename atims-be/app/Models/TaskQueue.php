@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 #[fillable([
     'task_type',
     'asset_id',
+    'incident_id',
     'assigned_user_id',
     'global_queue_order',
     'status',
@@ -22,9 +23,13 @@ class TaskQueue extends Model
 {
     use HasFactory;
 
+    // The live task_queues table has created_at but no updated_at column.
+    public const UPDATED_AT = null;
+
     protected $fillable = [
         'task_type',
         'asset_id',
+        'incident_id',
         'assigned_user_id',
         'global_queue_order',
         'status',
@@ -53,6 +58,11 @@ class TaskQueue extends Model
     public function assignedUser(): BelongsTo
     {
         return $this->belongsTo(User::class, 'assigned_user_id');
+    }
+
+    public function incident(): BelongsTo
+    {
+        return $this->belongsTo(Incident::class);
     }
 
     /**

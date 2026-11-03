@@ -5,6 +5,9 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { ReportsRoutingModule } from './reports-routing.module';
 import { ReportsComponent } from './reports.component';
 import { ReportService } from './report.service';
+import { ButtonModule } from 'primeng/button';
+import { SelectModule } from 'primeng/select';
+import { InputTextModule } from 'primeng/inputtext';
 
 @NgModule({
   declarations: [ReportsComponent],
@@ -12,6 +15,9 @@ import { ReportService } from './report.service';
     CommonModule,
     FormsModule,
     ReactiveFormsModule,
+    ButtonModule,
+    SelectModule,
+    InputTextModule,
     ReportsRoutingModule
   ],
   providers: [ReportService]

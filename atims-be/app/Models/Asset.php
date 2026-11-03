@@ -105,6 +105,12 @@ class Asset extends Model
         return $this->hasOne(Inspection::class)->orderBy('created_at', 'desc');
     }
 
+    /** Get incidents reported for this asset. */
+    public function incidents(): HasMany
+    {
+        return $this->hasMany(Incident::class);
+    }
+
     /**
      * Get the attachments for the asset.
      */

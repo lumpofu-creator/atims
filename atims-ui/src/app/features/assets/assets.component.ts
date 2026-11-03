@@ -1,5 +1,5 @@
 import { CommonModule, CurrencyPipe } from '@angular/common';
-import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { IconFieldModule } from 'primeng/iconfield';
@@ -16,7 +16,9 @@ import { InputNumberModule } from 'primeng/inputnumber';
 import { SelectModule } from 'primeng/select';
 import { TextareaModule } from 'primeng/textarea';
 import { ToastModule } from 'primeng/toast';
-import { Router } from '@angular/router';
+import { IncidentLogComponent } from '../incidents/incident-log.component';
+import { AppPreferencesService } from '../../core/preferences/app-preferences.service';
+import { TranslatePipe } from '../../core/preferences/translate.pipe';
 
 interface AssetPageEvent {
   first?: number | null;
@@ -41,7 +43,9 @@ interface AssetPageEvent {
     ConfirmDialogModule,
     ToastModule,
     TableModule,
-    TagModule
+    TagModule,
+    IncidentLogComponent,
+    TranslatePipe
   ],
   template: `
     <p-toast />
@@ -268,6 +272,22 @@ interface AssetPageEvent {
         <p-button [label]="isAdding ? 'Create asset' : 'Save changes'" icon="pi pi-check" [loading]="saving" [disabled]="editLoading || !editDraft" (onClick)="saveAsset()" />
       </ng-template>
     </p-dialog>
+
+    <p-dialog
+      [(visible)]="incidentLogDialogVisible"
+      header="Log Incident"
+      [modal]="true"
+      [draggable]="false"
+      [style]="{ width: 'min(72rem, calc(100vw - 2rem))' }"
+      [contentStyle]="{ 'max-height': '80vh', 'overflow-y': 'auto' }"
+      (onHide)="incidentLogDialogVisible = false"
+    >
+      <app-incident-log
+        *ngIf="incidentLogDialogVisible"
+        [initialAssetStateId]="incidentAssetStateId"
+        (logged)="onIncidentLogged($event)"
+      />
+    </p-dialog>
   `,
   styles: [`
     .assets-page { display: flex; flex-direction: column; gap: 1rem; }
@@ -335,6 +355,8 @@ export class AssetsComponent implements OnInit {
   bulkDeleting = false;
   exporting = false;
   printing = false;
+  incidentLogDialogVisible = false;
+  incidentAssetStateId: string | null = null;
   editDraft: AssetDetails | null = null;
   readonly statusOptions = [
     { label: 'Functional', value: 'Fonctionnel' },
@@ -349,8 +371,7 @@ export class AssetsComponent implements OnInit {
     private assetService: AssetService,
     private changeDetector: ChangeDetectorRef,
     private confirmationService: ConfirmationService,
-    private messageService: MessageService,
-    private router: Router
+    private messageService: MessageService
   ) {}
 
   ngOnInit(): void {
@@ -540,7 +561,16 @@ export class AssetsComponent implements OnInit {
 
   logIncident(): void {
     const selected = this.selectedAssets.length === 1 ? this.selectedAssets[0] : null;
-    void this.router.navigate(['/incidents'], { queryParams: selected ? { asset: selected.stateId } : {} });
+    this.incidentAssetStateId = selected?.stateId ?? null;
+    this.incidentLogDialogVisible = true;
+  }
+
+  onIncidentLogged(uploadFailed: boolean): void {
+    this.incidentLogDialogVisible = false;
+    this.messageService.add(uploadFailed
+      ? { severity: 'warn', summary: 'Incident logged; image upload failed', detail: 'The incident was recorded, but the image could not be attached.' }
+      : { severity: 'success', summary: 'Incident logged', detail: 'The asset has been marked out of service.' });
+    this.refreshAssets();
   }
 
   async exportCsv(table: Table): Promise<void> {

@@ -3,9 +3,8 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\TaskQueue;
 use App\Models\Asset;
-use App\Models\Inspection;
+use App\Models\TaskQueue;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use OpenApi\Attributes as OA;
@@ -56,7 +55,7 @@ class TaskController extends Controller
         ]);
 
         $asset = Asset::find($validated['asset_id']);
-        if (!$asset) {
+        if (! $asset) {
             return $this->notFound('Asset', $validated['asset_id']);
         }
 
@@ -115,7 +114,7 @@ class TaskController extends Controller
         $status = $request->input('status');
 
         $query = TaskQueue::query()
-            ->with(['asset', 'assignedUser']);
+            ->with(['asset', 'assignedUser', 'incident.reporter', 'incident.assignedUser']);
 
         // If agent_id provided, filter by that user
         if ($agentId) {
@@ -134,6 +133,10 @@ class TaskController extends Controller
                 'id' => $task->id,
                 'task_type' => $task->task_type,
                 'asset_id' => $task->asset_id,
+                'state_id' => $task->asset?->state_id,
+                'incident_id' => $task->incident_id,
+                'incident_notes' => $task->incident?->field_notes,
+                'incident' => $this->incidentDetails($task->incident),
                 'asset_name' => $task->asset ? $task->asset->name : null,
                 'status' => $task->status,
                 'assigned_user_id' => $task->assigned_user_id,
@@ -170,13 +173,17 @@ class TaskController extends Controller
     public function globalQueue(Request $request): JsonResponse
     {
         $tasks = TaskQueue::globalQueue()
-            ->with(['asset'])
+            ->with(['asset', 'incident.reporter', 'incident.assignedUser'])
             ->orderBy('created_at', 'asc')
             ->get()
             ->map(function ($task) {
                 return [
                     'id' => $task->id,
                     'asset_id' => $task->asset_id,
+                    'state_id' => $task->asset?->state_id,
+                    'incident_id' => $task->incident_id,
+                    'incident_notes' => $task->incident?->field_notes,
+                    'incident' => $this->incidentDetails($task->incident),
                     'asset_name' => $task->asset ? $task->asset->name : null,
                     'status' => $task->status,
                     'created_at' => $task->created_at->toDateTimeString(),
@@ -187,6 +194,27 @@ class TaskController extends Controller
             'total' => count($tasks),
             'items' => $tasks,
         ]);
+    }
+
+    private function incidentDetails(?\App\Models\Incident $incident): ?array
+    {
+        if (!$incident) {
+            return null;
+        }
+
+        return [
+            'id' => $incident->id,
+            'field_notes' => $incident->field_notes,
+            'status' => $incident->status,
+            'reported_at' => $incident->created_at?->toDateTimeString(),
+            'reporter_name' => $incident->reporter?->name,
+            'assigned_user_name' => $incident->assignedUser?->name,
+            'device_latitude' => $incident->device_latitude,
+            'device_longitude' => $incident->device_longitude,
+            'device_timestamp' => $incident->device_timestamp?->toDateTimeString(),
+            'resolution_notes' => $incident->resolution_notes,
+            'resolved_at' => $incident->resolved_at?->toDateTimeString(),
+        ];
     }
 
     #[OA\Put(
@@ -225,7 +253,7 @@ class TaskController extends Controller
     {
         $task = TaskQueue::find($id);
 
-        if (!$task) {
+        if (! $task) {
             return $this->notFound('Task', $id);
         }
 
@@ -234,6 +262,10 @@ class TaskController extends Controller
         ]);
 
         if ($validated['status'] === 'Completed') {
+            $task->loadMissing('incident');
+            if ($task->incident && $task->incident->status !== 'resolved') {
+                return $this->error('Incident-linked tasks must be completed through repair verification', 422);
+            }
             $task->complete();
         } else {
             $task->update(['status' => $validated['status']]);
@@ -270,12 +302,60 @@ class TaskController extends Controller
     {
         $task = TaskQueue::find($id);
 
-        if (!$task) {
+        if (! $task) {
             return $this->notFound('Task', $id);
         }
 
         $task->cancel();
 
         return $this->success(['message' => 'Task cancelled successfully']);
+    }
+
+    #[OA\Post(
+        path: '/api/tasks/{task}/claim',
+        summary: 'Claim task from global queue',
+        description: 'Allow a field agent to self-assign a task from the global queue',
+        tags: ['Tasks'],
+        security: [['bearerAuth' => []]],
+        parameters: [
+            new OA\Parameter(name: 'task', in: 'path', required: true, schema: new OA\Schema(type: 'integer')),
+        ],
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'Task claimed successfully'
+            ),
+            new OA\Response(
+                response: 404,
+                description: 'Task not found or not in global queue'
+            ),
+            new OA\Response(
+                response: 401,
+                description: 'Unauthorized'
+            ),
+        ]
+    )]
+    public function claim(Request $request, $id): JsonResponse
+    {
+        $task = TaskQueue::globalQueue()->find($id);
+
+        if (! $task) {
+            return $this->notFound('Task', $id);
+        }
+
+        $task->assignTo($request->user()->id);
+
+        return $this->success([
+            'message' => 'Task claimed successfully',
+            'task' => [
+                'id' => $task->id,
+                'task_type' => $task->task_type,
+                'asset_id' => $task->asset_id,
+                'asset_name' => $task->asset ? $task->asset->name : null,
+                'status' => $task->status,
+                'assigned_user_id' => $task->assigned_user_id,
+                'due_date' => $task->due_date,
+            ],
+        ]);
     }
 }

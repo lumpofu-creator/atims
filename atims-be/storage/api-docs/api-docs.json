@@ -1313,7 +1313,7 @@
                 ],
                 "summary": "Log incident with QR scan",
                 "description": "Log an incident by scanning a QR code. Updates asset status to \"En Panne\".",
-                "operationId": "f3c948a694e98e7be52c9bcafa1a0e4b",
+                "operationId": "3334e25b99594b1e35ab07820db2da8f",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -2050,6 +2050,42 @@
                     },
                     "404": {
                         "description": "Task not found"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/tasks/{task}/claim": {
+            "post": {
+                "tags": [
+                    "Tasks"
+                ],
+                "summary": "Claim task from global queue",
+                "description": "Allow a field agent to self-assign a task from the global queue",
+                "operationId": "dabfa3cbd92fef0404b9439db60362d8",
+                "parameters": [
+                    {
+                        "name": "task",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Task claimed successfully"
+                    },
+                    "404": {
+                        "description": "Task not found or not in global queue"
                     },
                     "401": {
                         "description": "Unauthorized"

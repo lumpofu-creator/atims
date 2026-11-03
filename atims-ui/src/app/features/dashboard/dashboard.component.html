@@ -1,5 +1,5 @@
 <div class="layout-content">
-  <h1>Dashboard</h1>
+  <h1>{{ 'Dashboard' | t }}</h1>
   
   <!-- KPI Cards -->
   <div class="dashboard-kpis">
@@ -7,7 +7,7 @@
       <div class="dashboard-kpi-card">
         <div class="dashboard-kpi-top">
           <div>
-            <p class="dashboard-kpi-label">Assets</p>
+            <p class="dashboard-kpi-label">{{ 'Assets' | t }}</p>
             <div class="dashboard-kpi-value">
               {{ kpis?.totalAssets}}
             </div>
@@ -16,7 +16,7 @@
             <i class="pi pi-box"></i>
           </span>
         </div>
-        <p class="dashboard-kpi-caption">Across all tracked assets</p>
+        <p class="dashboard-kpi-caption">{{ 'Across all tracked assets' | t }}</p>
       </div>
     </div>
 
@@ -24,23 +24,23 @@
       <div class="dashboard-kpi-card">
         <div class="dashboard-kpi-top">
           <div>
-            <p class="dashboard-kpi-label">Total Portfolio Value</p>
+            <p class="dashboard-kpi-label">{{ 'Total Portfolio Value' | t }}</p>
             <div class="dashboard-kpi-value">
-              {{ kpis?.totalValue | currency:'ZAR':'symbol':'1.0-0' }}
+              {{ kpis?.totalValue | currency:preferences.currency():'symbol':'1.0-0':preferences.locale() }}
             </div>
           </div>
           <span class="dashboard-kpi-icon dashboard-kpi-icon--blue" aria-hidden="true">
             <i class="pi pi-wallet"></i>
           </span>
         </div>
-        <p class="dashboard-kpi-caption">Across all tracked assets</p>
+        <p class="dashboard-kpi-caption">{{ 'Across all tracked assets' | t }}</p>
       </div>
     </div>
     <div class="dashboard-kpi">
       <div class="dashboard-kpi-card">
         <div class="dashboard-kpi-top">
           <div>
-            <p class="dashboard-kpi-label">Operational Health Rate</p>
+            <p class="dashboard-kpi-label">{{ 'Operational Health Rate' | t }}</p>
             <div class="dashboard-kpi-value">
               {{ kpis?.healthRate | number:'1.1-1' }}%
             </div>
@@ -49,23 +49,23 @@
             <i class="pi pi-heart"></i>
           </span>
         </div>
-        <p class="dashboard-kpi-caption">Assets currently in working condition</p>
+        <p class="dashboard-kpi-caption">{{ 'Assets currently in working condition' | t }}</p>
       </div>
     </div>
     <div class="dashboard-kpi">
       <div class="dashboard-kpi-card dashboard-kpi-card--risk">
         <div class="dashboard-kpi-top">
           <div>
-            <p class="dashboard-kpi-label">Capital at Risk</p>
+            <p class="dashboard-kpi-label">{{ 'Capital at Risk' | t }}</p>
             <div class="dashboard-kpi-value" [class.dashboard-kpi-value--risk]="(kpis?.capitalAtRisk ?? 0) > 0">
-              {{ kpis?.capitalAtRisk | currency:'ZAR':'symbol':'1.0-0' }}
+              {{ kpis?.capitalAtRisk | currency:preferences.currency():'symbol':'1.0-0':preferences.locale() }}
             </div>
           </div>
           <span class="dashboard-kpi-icon dashboard-kpi-icon--orange" aria-hidden="true">
             <i class="pi pi-exclamation-triangle"></i>
           </span>
         </div>
-        <p class="dashboard-kpi-caption">Estimated value of assets requiring attention</p>
+        <p class="dashboard-kpi-caption">{{ 'Estimated value of assets requiring attention' | t }}</p>
       </div>
     </div>
   </div>
@@ -76,20 +76,20 @@
   </div>
   
   <!-- Recent Inspections -->
-  <h2>Recent Inspections</h2>
+  <h2>{{ 'Recent Inspections' | t }}</h2>
   <div *ngIf="inspections; else loading">
     <div *ngFor="let inspection of inspections" class="card mb-3">
       <h5 class="mt-0">{{ inspection.assetName }}</h5>
       <p class="text-gray-600">
-        Type: {{ inspection.inspectionType }} | 
-        Status: {{ inspection.conditionStatus }} | 
-        Date: {{ inspection.date | date:'short' }}
+        {{ 'Type' | t }}: {{ inspection.inspectionType }} | 
+        {{ 'Status' | t }}: {{ inspection.conditionStatus }} | 
+        {{ 'Date' | t }}: {{ inspection.date | date:'short' }}
       </p>
     </div>
   </div>
   <ng-template #loading>
     <div class="flex justify-content-center">
-      <p role="status">Loading inspections...</p>
+      <p role="status">{{ 'Loading inspections...' | t }}</p>
     </div>
   </ng-template>
 </div>

@@ -1,0 +1,21 @@
+/* You can add global styles to this file, and also import other style files */
+@import 'primeicons/primeicons.css';
+@import 'layout/layout.scss';
+@import 'demo/demo.scss';
+
+.sakai-caret-mark {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary-color);
+  font-family: var(--font-family);
+  font-weight: 600;
+  line-height: 1;
+}
+
+.sakai-caret-mark--header { width: 1.1rem; height: 1.5rem; font-size: 2rem; transform: translateY(-1px); }
+.sakai-caret-mark--login { width: 4rem; margin-bottom: 2rem; font-size: 4rem; }
+.sakai-caret-mark--notfound { width: 8rem; margin-bottom: 2rem; font-size: 5rem; }
+.sakai-caret-mark--footer { height: 3.5rem; margin-right: 0.5rem; font-size: 3.5rem; }
+.sakai-caret-mark--landing { height: 3rem; margin-right: 0.5rem; font-size: 3rem; }

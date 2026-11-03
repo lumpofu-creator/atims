@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { AppLayout } from './layout/component/app.layout';
+import { authGuard, guestGuard } from './core/auth/auth.guard';
 
 export const routes: Routes = [
   {
@@ -8,8 +9,14 @@ export const routes: Routes = [
     pathMatch: 'full'
   },
   {
+    path: 'login',
+    canActivate: [guestGuard],
+    loadComponent: () => import('./pages/auth/login').then(m => m.Login)
+  },
+  {
     path: '',
     component: AppLayout,
+    canActivate: [authGuard],
     children: [
       {
         path: 'dashboard',
@@ -21,7 +28,7 @@ export const routes: Routes = [
       },
       {
         path: 'incidents',
-        loadComponent: () => import('./features/incidents/incident-log.component').then(m => m.IncidentLogComponent)
+        loadComponent: () => import('./features/incidents/incident-list.component').then(m => m.IncidentListComponent)
       },
       {
         path: 'tasks',

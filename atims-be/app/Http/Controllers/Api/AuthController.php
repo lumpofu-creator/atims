@@ -3,142 +3,96 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\ApiToken;
+use App\Models\User;
 use Illuminate\Http\Request;
-use OpenApi\Attributes as OA;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Str;
 
 class AuthController extends Controller
 {
-    #[OA\Post(
-        path: '/api/auth/login',
-        summary: 'Login user and return authentication token',
-        description: 'Authenticate user with username and password, returns JWT token',
-        tags: ['Authentication'],
-        requestBody: new OA\RequestBody(
-            content: new OA\JsonContent(
-                required: ['username', 'password'],
-                properties: [
-                    new OA\Property(property: 'username', type: 'string', example: 'admin'),
-                    new OA\Property(property: 'password', type: 'string', example: 'password123'),
-                ]
-            )
-        ),
-        responses: [
-            new OA\Response(
-                response: 200,
-                description: 'Successful login',
-                content: new OA\JsonContent(
-                    properties: [
-                        new OA\Property(property: 'success', type: 'boolean', example: true),
-                        new OA\Property(property: 'data', type: 'object', properties: [
-                            new OA\Property(property: 'token', type: 'string', example: 'fake-jwt-token'),
-                            new OA\Property(property: 'expires_at', type: 'string', example: '2026-11-02 10:00:00'),
-                            new OA\Property(property: 'user', type: 'object', properties: [
-                                new OA\Property(property: 'id', type: 'integer', example: 1),
-                                new OA\Property(property: 'username', type: 'string', example: 'admin'),
-                                new OA\Property(property: 'email', type: 'string', example: 'admin@example.com'),
-                                new OA\Property(property: 'role', type: 'string', example: 'admin'),
-                            ]),
-                        ]),
-                    ]
-                )
-            ),
-            new OA\Response(
-                response: 401,
-                description: 'Invalid credentials',
-                content: new OA\JsonContent(
-                    properties: [
-                        new OA\Property(property: 'success', type: 'boolean', example: false),
-                        new OA\Property(property: 'error', type: 'string', example: 'Unauthorized'),
-                    ]
-                )
-            ),
-        ]
-    )]
     public function login(Request $request)
     {
         $validated = $request->validate([
-            'username' => 'required|string',
-            'password' => 'required|string',
+            'username' => ['required', 'string', 'max:255'],
+            'password' => ['required', 'string'],
+            'remember' => ['sometimes', 'boolean'],
         ]);
 
-        // Example implementation - replace with actual authentication
-        $user = [
-            'id' => 1,
-            'username' => $validated['username'],
-            'email' => 'admin@example.com',
-            'role' => 'admin',
-        ];
+        $identifier = trim($validated['username']);
+        $columns = Schema::getColumnListing('users');
+        $identityColumns = array_values(array_intersect(['email', 'username', 'name'], $columns));
+        if ($identityColumns === []) {
+            return $this->unauthorized('No login identifier is configured for user accounts.');
+        }
+
+        $user = User::query()->where(function ($query) use ($identityColumns, $identifier) {
+            foreach ($identityColumns as $index => $column) {
+                $index === 0 ? $query->where($column, $identifier) : $query->orWhere($column, $identifier);
+            }
+        })->first();
+        if (! $user || ! Hash::check($validated['password'], $user->password_hash)) {
+            return $this->unauthorized('The email/username or password is incorrect.');
+        }
+
+        $plainToken = Str::random(80);
+        $expiresAt = $request->boolean('remember') ? now()->addDays(30) : now()->addHours(12);
+        ApiToken::create([
+            'user_id' => $user->id,
+            'token_hash' => hash('sha256', $plainToken),
+            'expires_at' => $expiresAt,
+        ]);
 
         return $this->success([
-            'token' => 'fake-jwt-token', // In production, generate JWT token
-            'expires_at' => now()->addHours(24)->toDateTimeString(),
-            'user' => $user,
+            'token' => $plainToken,
+            'expires_at' => $expiresAt->toDateTimeString(),
+            'user' => $this->userPayload($user),
         ]);
     }
 
-    #[OA\Post(
-        path: '/api/auth/logout',
-        summary: 'Logout user and invalidate token',
-        description: 'Revoke user authentication token',
-        tags: ['Authentication'],
-        security: [['bearerAuth' => []]],
-        responses: [
-            new OA\Response(
-                response: 200,
-                description: 'Successfully logged out',
-                content: new OA\JsonContent(
-                    properties: [
-                        new OA\Property(property: 'success', type: 'boolean', example: true),
-                        new OA\Property(property: 'data', type: 'object', properties: [
-                            new OA\Property(property: 'message', type: 'string', example: 'Logged out successfully'),
-                        ]),
-                    ]
-                )
-            ),
-            new OA\Response(
-                response: 401,
-                description: 'Unauthorized'
-            ),
-        ]
-    )]
     public function logout(Request $request)
     {
-        // Example implementation - replace with actual logout logic
-        $request->user()->tokens()->delete();
-
+        ApiToken::whereKey($request->attributes->get('api_token_id'))->delete();
         return $this->success(['message' => 'Logged out successfully']);
     }
 
-    #[OA\Get(
-        path: '/api/auth/me',
-        summary: 'Get current authenticated user',
-        description: 'Returns the authenticated user details',
-        tags: ['Authentication'],
-        security: [['bearerAuth' => []]],
-        responses: [
-            new OA\Response(
-                response: 200,
-                description: 'User details',
-                content: new OA\JsonContent(
-                    properties: [
-                        new OA\Property(property: 'success', type: 'boolean', example: true),
-                        new OA\Property(property: 'data', type: 'object', properties: [
-                            new OA\Property(property: 'id', type: 'integer', example: 1),
-                            new OA\Property(property: 'username', type: 'string', example: 'admin'),
-                            new OA\Property(property: 'email', type: 'string', example: 'admin@example.com'),
-                            new OA\Property(property: 'role', type: 'string', example: 'admin'),
-                        ]),
-                    ]
-                )
-            ),
-            new OA\Response(
-                response: 401,
-                description: 'Unauthorized'
-            ),
-        ]
-    )]
     public function me(Request $request)
     {
-        return $this->success($request->user());
+        return $this->success($this->userPayload($request->user()));
+    }
+
+    public function updateProfile(Request $request)
+    {
+        $validated = $request->validate([
+            'username' => ['sometimes', 'nullable', 'string', 'max:255'],
+            'name' => ['sometimes', 'nullable', 'string', 'max:255'],
+            'phone' => ['sometimes', 'nullable', 'string', 'max:40'],
+        ]);
+        $user = $request->user();
+        $columns = Schema::getColumnListing('users');
+        $displayName = $validated['username'] ?? $validated['name'] ?? null;
+        if ($displayName !== null) {
+            if (in_array('username', $columns, true)) $user->setAttribute('username', $displayName);
+            elseif (in_array('name', $columns, true)) $user->setAttribute('name', $displayName);
+        }
+        if (array_key_exists('phone', $validated) && in_array('phone', $columns, true)) {
+            $user->setAttribute('phone', $validated['phone']);
+        }
+        $user->save();
+        return $this->success($this->userPayload($user->fresh()));
+    }
+
+    private function userPayload(User $user): array
+    {
+        return [
+            'id' => $user->id,
+            'name' => $user->name,
+            'username' => $user->username ?? $user->name,
+            'email' => $user->email,
+            'phone' => $user->phone,
+            'role' => $user->role,
+            'mfa_enabled' => false,
+        ];
     }
 }
