@@ -602,6 +602,14 @@ export class TasksComponent implements OnInit {
   }
 
   assignTask(id: number): void {
-    console.log('Assign task:', id);
+    this.taskService.claimTask(id).subscribe({
+      next: () => {
+        this.loadGlobalQueue();
+        this.loadAssignedTasks();
+      },
+      error: () => {
+        alert('Could not assign this task. Please try again.');
+      }
+    });
   }
 }

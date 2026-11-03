@@ -8,7 +8,7 @@ import { InputTextModule } from 'primeng/inputtext';
 import { Table, TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 import { Observable, firstValueFrom } from 'rxjs';
-import { Asset, AssetDetails, AssetService } from './asset.service';
+import { Asset, AssetDetails, AssetService, Category } from './asset.service';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { DialogModule } from 'primeng/dialog';
@@ -142,7 +142,7 @@ interface AssetPageEvent {
                 Location <p-sortIcon field="latitude" /><p-columnFilter type="text" field="locationText" display="menu" />
               </th>
               <th pSortableColumn="currentValue" class="value-column">
-                Current value <p-sortIcon field="currentValue" /><p-columnFilter type="numeric" field="currentValue" display="menu" currency="EUR" />
+                Current value <p-sortIcon field="currentValue" /><p-columnFilter type="numeric" field="currentValue" display="menu" [currency]="preferences.currency()" />
               </th>
               <th class="actions-column">Actions</th>
             </tr>
@@ -166,7 +166,7 @@ interface AssetPageEvent {
                 </span>
                 <ng-template #noCoordinates><span class="muted">No coordinates</span></ng-template>
               </td>
-              <td class="value-cell">{{ asset.currentValue | currency: 'EUR' : 'symbol' : '1.0-0' }}</td>
+              <td class="value-cell">{{ asset.currentValue | currency: preferences.currency() : preferences.currencySymbol() : '1.0-0' : preferences.locale() }}</td>
               <td class="actions-cell">
                 <p-button
                   icon="pi pi-pencil"
@@ -230,9 +230,22 @@ interface AssetPageEvent {
           </div>
 
           <div class="form-field">
-            <label for="asset-category-id">Category ID</label>
-            <p-inputnumber inputId="asset-category-id" name="assetCategoryId" [(ngModel)]="draft.categoryId" [min]="1" [useGrouping]="false" fluid />
-            <small class="field-hint">Category ID {{ draft.categoryId }}: {{ draft.category || 'Unknown category' }}</small>
+            <label for="asset-category-id">Category <span class="required-mark">*</span></label>
+            <p-select
+              inputId="asset-category-id"
+              name="assetCategoryId"
+              [(ngModel)]="draft.categoryId"
+              [options]="categoryOptions"
+              optionLabel="name"
+              optionValue="id"
+              [filter]="true"
+              filterBy="name"
+              [loading]="categoriesLoading"
+              placeholder="Select a category"
+              appendTo="body"
+              fluid
+            />
+            <small *ngIf="categoriesError" class="field-hint">{{ categoriesError }}</small>
           </div>
 
           <div class="form-field">
@@ -262,7 +275,7 @@ interface AssetPageEvent {
 
           <div class="form-field">
             <label for="asset-current-value">Current value</label>
-            <p-inputnumber inputId="asset-current-value" name="currentValue" [(ngModel)]="draft.currentValue" mode="currency" currency="EUR" locale="en-IE" [min]="0" fluid />
+            <p-inputnumber inputId="asset-current-value" name="currentValue" [(ngModel)]="draft.currentValue" mode="currency" [currency]="preferences.currency()" [locale]="preferences.locale()" [min]="0" fluid />
           </div>
         </form>
       </ng-template>
@@ -358,6 +371,9 @@ export class AssetsComponent implements OnInit {
   incidentLogDialogVisible = false;
   incidentAssetStateId: string | null = null;
   editDraft: AssetDetails | null = null;
+  categoryOptions: Category[] = [];
+  categoriesLoading = false;
+  categoriesError = '';
   readonly statusOptions = [
     { label: 'Functional', value: 'Fonctionnel' },
     { label: 'Out of Service', value: 'En Panne' },
@@ -371,11 +387,30 @@ export class AssetsComponent implements OnInit {
     private assetService: AssetService,
     private changeDetector: ChangeDetectorRef,
     private confirmationService: ConfirmationService,
-    private messageService: MessageService
+    private messageService: MessageService,
+    readonly preferences: AppPreferencesService
   ) {}
 
   ngOnInit(): void {
     this.loadAssets({ first: 0, rows: this.rows });
+    this.loadCategories();
+  }
+
+  private loadCategories(): void {
+    this.categoriesLoading = true;
+    this.categoriesError = '';
+    this.assetService.getCategories().subscribe({
+      next: categories => {
+        this.categoryOptions = categories;
+        this.categoriesLoading = false;
+        this.changeDetector.markForCheck();
+      },
+      error: () => {
+        this.categoriesLoading = false;
+        this.categoriesError = 'Unable to load categories.';
+        this.changeDetector.markForCheck();
+      }
+    });
   }
 
   loadAssets(event: AssetPageEvent = {}): void {

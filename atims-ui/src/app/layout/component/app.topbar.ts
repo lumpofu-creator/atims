@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, computed, inject } from '@angular/core';
 import { MenuItem } from 'primeng/api';
 import { Router, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
@@ -25,6 +25,9 @@ import { AppPreferencesService } from '@/app/core/preferences/app-preferences.se
         </div>
 
         <div class="layout-topbar-actions">
+            <div>
+                <span>{{displayName()}}</span>
+            </div>
             <div class="layout-config-menu">
                 <button type="button" class="layout-topbar-action" (click)="toggleDarkMode()">
                     <i [ngClass]="{ 'pi ': true, 'pi-moon': layoutService.isDarkTheme(), 'pi-sun': !layoutService.isDarkTheme() }"></i>
@@ -45,16 +48,17 @@ import { AppPreferencesService } from '@/app/core/preferences/app-preferences.se
                 </div>-->
             </div>
 
+            <!--
             <button class="layout-topbar-menu-button layout-topbar-action" pStyleClass="@next" enterFromClass="hidden" enterActiveClass="animate-scalein" leaveToClass="hidden" leaveActiveClass="animate-fadeout" [hideOnOutsideClick]="true">
                 <i class="pi pi-ellipsis-v"></i>
-            </button>
+            </button>-->
 
             <div class="layout-topbar-menu hidden lg:block">
                 <div class="layout-topbar-menu-content">
                     <p-menu #accountMenu [model]="accountMenuItems" [popup]="true" [autoZIndex]="true" />
                     <button type="button" class="layout-topbar-action account-trigger" (click)="accountMenu.toggle($event)" aria-haspopup="true" [attr.aria-label]="preferences.translate('Open user menu')">
                         <i class="pi pi-user"></i>
-                        <span class="account-name">{{ displayName }}</span>
+                        <span class="account-name">{{ displayName() }}</span>
                         <i class="pi pi-angle-down account-chevron"></i>
                     </button>
                 </div>
@@ -63,9 +67,10 @@ import { AppPreferencesService } from '@/app/core/preferences/app-preferences.se
     </div>`
     ,
     styles: [`
-        .account-trigger { display: inline-flex; align-items: center; gap: 0.55rem; max-width: 15rem; }
-        .account-name { max-width: 10rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .account-trigger { display: inline-flex; align-items: center; gap: 0.4rem; max-width: 18rem; margin-left: 0.5rem; padding: 0.3rem 0; }
+        .account-name { max-width: 10rem; white-space: nowrap; font-size: 0.9rem; line-height: 1; margin-top: 10rem; }
         .account-chevron { font-size: 0.75rem; color: var(--text-color-secondary); }
+        .layout-topbar-actions { display: flex;flex-direction: row;align-items: center;gap: 1rem;}
         @media (max-width: 768px) { .account-name { max-width: 8rem; } }
     `]
 })
@@ -75,10 +80,10 @@ export class AppTopbar {
     private router = inject(Router);
     preferences = inject(AppPreferencesService);
 
-    get displayName(): string {
+    displayName = computed(() => {
         const user = this.auth.currentUser;
         return user?.name || user?.username || user?.email || 'Account';
-    }
+    });
 
     accountMenuItems: MenuItem[];
 
@@ -87,9 +92,9 @@ export class AppTopbar {
         this.accountMenuItems = [
             { label: t('My Profile'), icon: 'pi pi-user-edit', routerLink: ['/settings'] },
             { separator: true },
-            { 
-                label: t('Logout'), 
-                icon: 'pi pi-sign-out', 
+            {
+                label: t('Logout'),
+                icon: 'pi pi-sign-out',
                 command: () => {
                     this.auth.logout();
                 }

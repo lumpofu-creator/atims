@@ -56,6 +56,22 @@ export interface AssetPage {
   total: number;
 }
 
+export interface Category {
+  id: number;
+  name: string;
+  code: string | null;
+  tier: string | null;
+  parentId: number | null;
+}
+
+interface ApiCategory {
+  id: number;
+  name: string;
+  code: string | null;
+  tier: string | null;
+  parent_id: number | null;
+}
+
 interface ApiAsset {
   id: number;
   state_id: string;
@@ -119,8 +135,24 @@ export class AssetService {
     );
   }
   
-  getById(id: number): Observable<AssetDetails> {
-    return this.http.get<ApiResponse<ApiAsset>>(`${this.apiUrlAssets}/${id}`).pipe(
+  getCategories(tier?: string): Observable<Category[]> {
+    let params = new HttpParams();
+    if (tier) params = params.set('tier', tier);
+
+    return this.http.get<ApiResponse<ApiCategory[]>>(`${this.apiUrl}/categories`, { params }).pipe(
+      map(response => Array.isArray(response?.data)
+        ? response.data.map(category => ({
+            id: category.id,
+            name: category.name,
+            code: category.code ?? null,
+            tier: category.tier ?? null,
+            parentId: category.parent_id ?? null
+          }))
+        : [])
+    );
+  }
+
+  getById(id: number): Observable<AssetDetails> {    return this.http.get<ApiResponse<ApiAsset>>(`${this.apiUrlAssets}/${id}`).pipe(
       map(response => this.mapAsset(response.data) as AssetDetails)
     );
   }

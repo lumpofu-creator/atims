@@ -4,6 +4,7 @@ import { RouterModule } from '@angular/router';
 import { MenuItem } from 'primeng/api';
 import { AppMenuitem } from './app.menuitem';
 import { AppPreferencesService } from '@/app/core/preferences/app-preferences.service';
+import { AuthService } from '@/app/core/auth/auth.service';
 
 @Component({
     selector: 'app-menu',
@@ -22,10 +23,20 @@ import { AppPreferencesService } from '@/app/core/preferences/app-preferences.se
 export class AppMenu {
     model: MenuItem[] = [];
     private preferences = inject(AppPreferencesService);
+    private auth = inject(AuthService);
 
     constructor() {
         effect(() => {
             const t = (value: string) => this.preferences.translate(value);
+
+            const systemItems: MenuItem[] = [
+                { label: t('Settings'), icon: 'pi pi-fw pi-cog', routerLink: ['/settings'] }
+            ];
+            // TODO: restore role check — only Logistics Officer should see this.
+            // if (this.auth.currentUser?.role === 'Logistics Officer') {
+                systemItems.unshift({ label: t('User Management'), icon: 'pi pi-fw pi-users', routerLink: ['/users'] });
+            // }
+
         this.model = [
             {
                 label: t('Home'),
@@ -47,7 +58,7 @@ export class AppMenu {
             },
             {
                 label: t('System'),
-                items: [{ label: t('Settings'), icon: 'pi pi-fw pi-cog', routerLink: ['/settings'] }]
+                items: systemItems
             }
         ];
         });

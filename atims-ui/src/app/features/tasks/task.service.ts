@@ -50,6 +50,10 @@ export class TaskService {
     });
   }
   
+  claimTask(taskId: number): Observable<any> {
+    return this.http.post(`${this.apiUrl}/${taskId}/claim`, {});
+  }
+  
   updateTaskStatus(id: number, status: string): Observable<any> {
     return this.http.put(`${this.apiUrl}/${id}`, { status });
   }

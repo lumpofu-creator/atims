@@ -10,6 +10,7 @@ export interface AuthUser {
   username?: string;
   email: string;
   role?: string | null;
+  mfa_enabled?: boolean;
 }
 
 interface AuthResponse {
@@ -37,7 +38,12 @@ export class AuthService {
     const serialized = localStorage.getItem(this.userKey) || sessionStorage.getItem(this.userKey);
     if (!serialized) return null;
     try {
-      return JSON.parse(serialized) as AuthUser;
+      const parsed = JSON.parse(serialized) as AuthUser | { data: { user: AuthUser } };
+      // Handle both formats: direct user object or response with data.user
+      if ('data' in parsed && parsed.data) {
+        return parsed.data.user;
+      }
+      return parsed as AuthUser;
     } catch {
       this.clearSession();
       return null;

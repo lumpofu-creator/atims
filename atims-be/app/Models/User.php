@@ -6,15 +6,16 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-#[Fillable(['name', 'email', 'password', 'role', 'phone'])]
-#[Hidden(['password', 'remember_token'])]
+#[Fillable(['username', 'email', 'password_hash', 'role', 'first_name', 'last_name', 'phone', 'mfa_enabled'])]
+#[Hidden(['password_hash', 'password', 'remember_token', 'mfa_secret', 'mfa_backup_codes'])]
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, SoftDeletes;
 
     public function getNameAttribute($value): string
     {

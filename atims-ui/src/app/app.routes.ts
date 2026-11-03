@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 import { AppLayout } from './layout/component/app.layout';
 import { authGuard, guestGuard } from './core/auth/auth.guard';
+import { roleGuard } from './core/auth/role.guard';
 
 export const routes: Routes = [
   {
@@ -41,6 +42,11 @@ export const routes: Routes = [
       {
         path: 'settings',
         loadChildren: () => import('./features/settings/settings.module').then(m => m.SettingsModule)
+      },
+      {
+        path: 'users',
+        // TODO: restore role guard — canActivate: [roleGuard(['Logistics Officer'])]
+        loadComponent: () => import('./features/users/users.component').then(m => m.UsersComponent)
       }
     ]
   },

@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\AssetController;
 use App\Http\Controllers\Api\AttachmentController;
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\HealthCheckController;
 use App\Http\Controllers\Api\IncidentActivityController;
@@ -24,10 +25,21 @@ Route::middleware(ApiTokenMiddleware::class)->group(function () {
     Route::put('/auth/me', [AuthController::class, 'updateProfile']);
     Route::get('/users/field-agents', [UserController::class, 'fieldAgents']);
 
+    // User management. Defined after /users/field-agents so the literal segment
+    // is matched before the {id} wildcard.
+    // TODO: restore role guard — wrap these in Route::middleware('role.guard:Logistics Officer')->group(...)
+    Route::get('/users', [UserController::class, 'index']);
+    Route::post('/users', [UserController::class, 'store']);
+    Route::get('/users/{id}', [UserController::class, 'show'])->whereNumber('id');
+    Route::put('/users/{id}', [UserController::class, 'update'])->whereNumber('id');
+    Route::delete('/users/{id}', [UserController::class, 'destroy'])->whereNumber('id');
+
     Route::apiResource('assets', AssetController::class);
     Route::post('/assets/search', [AssetController::class, 'search']);
     Route::get('/assets/summary', [AssetController::class, 'summary']);
     Route::get('/assets/stale-inspections', [AssetController::class, 'staleInspections']);
+
+    Route::get('/categories', [CategoryController::class, 'index']);
 
     Route::apiResource('inspections', InspectionController::class);
     Route::get('/inspections/history/{inspection}', [InspectionController::class, 'history']);

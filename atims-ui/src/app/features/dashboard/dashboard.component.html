@@ -26,7 +26,7 @@
           <div>
             <p class="dashboard-kpi-label">{{ 'Total Portfolio Value' | t }}</p>
             <div class="dashboard-kpi-value">
-              {{ kpis?.totalValue | currency:preferences.currency():'symbol':'1.0-0':preferences.locale() }}
+              {{ kpis?.totalValue | currency:preferences.currency():preferences.currencySymbol():'1.0-0':preferences.locale() }}
             </div>
           </div>
           <span class="dashboard-kpi-icon dashboard-kpi-icon--blue" aria-hidden="true">
@@ -58,7 +58,7 @@
           <div>
             <p class="dashboard-kpi-label">{{ 'Capital at Risk' | t }}</p>
             <div class="dashboard-kpi-value" [class.dashboard-kpi-value--risk]="(kpis?.capitalAtRisk ?? 0) > 0">
-              {{ kpis?.capitalAtRisk | currency:preferences.currency():'symbol':'1.0-0':preferences.locale() }}
+              {{ kpis?.capitalAtRisk | currency:preferences.currency():preferences.currencySymbol():'1.0-0':preferences.locale() }}
             </div>
           </div>
           <span class="dashboard-kpi-icon dashboard-kpi-icon--orange" aria-hidden="true">

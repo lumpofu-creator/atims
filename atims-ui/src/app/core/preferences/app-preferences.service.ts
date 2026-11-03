@@ -36,7 +36,13 @@ const french: Record<string, string> = {
   'Assets currently in working condition': 'Actifs actuellement en état de fonctionnement', 'Estimated value of assets requiring attention': 'Valeur estimée des actifs nécessitant une intervention', 'Recent Inspections': 'Inspections récentes',
   'Map Placeholder': 'Emplacement de la carte', 'Leaflet map would be displayed here': 'La carte Leaflet s’afficherait ici', 'Pins to display:': 'Repères à afficher :', 'Functional': 'Fonctionnel', 'Out of Service': 'En panne', 'Decommissioned': 'Mis hors service', 'Unknown': 'Inconnu',
   'Type': 'Type', 'Date': 'Date', 'Loading inspections...': 'Chargement des inspections...', 'Open user menu': 'Ouvrir le menu utilisateur',
-  'South African rand': 'Rand sud-africain', 'Euro': 'Euro', 'US dollar': 'Dollar américain'
+  'South African rand': 'Rand sud-africain', 'Euro': 'Euro', 'US dollar': 'Dollar américain',
+  'User Management': 'Gestion des utilisateurs', 'Create, update and remove user accounts.': 'Créer, modifier et supprimer des comptes utilisateurs.',
+  'users': 'utilisateurs', 'Search username or email': 'Rechercher par nom d’utilisateur ou e-mail', 'Showing': 'Affichage',
+  'Role': 'Rôle', 'No users found.': 'Aucun utilisateur trouvé.', 'Edit': 'Modifier',
+  'Add user': 'Ajouter un utilisateur', 'Edit user': 'Modifier l’utilisateur', 'First name': 'Prénom', 'Last name': 'Nom',
+  'Password': 'Mot de passe', 'Leave blank to keep current password': 'Laisser vide pour conserver le mot de passe actuel',
+  'Logistics Officer': 'Agent logistique', 'Field Agent': 'Agent de terrain', 'State Auditor': 'Auditeur d’État', 'Executive': 'Cadre'
 };
 
 @Injectable({ providedIn: 'root' })
@@ -65,6 +71,23 @@ export class AppPreferencesService {
 
   locale(): string {
     return this.language() === 'fr' ? 'fr-FR' : 'en-ZA';
+  }
+
+  /**
+   * Display symbol for the active currency, including a trailing space so the
+   * symbol is visually separated from the amount (e.g. "R 1 000").
+   * Passed as the `display` argument of Angular's CurrencyPipe.
+   */
+  currencySymbol(): string {
+    switch (this.currency()) {
+      case 'EUR':
+        return '€ ';
+      case 'USD':
+        return '$ ';
+      case 'ZAR':
+      default:
+        return 'R ';
+    }
   }
 
   private readLanguage(): AppLanguage {

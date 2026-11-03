@@ -857,167 +857,32 @@
                 ]
             }
         },
-        "/api/auth/login": {
-            "post": {
-                "tags": [
-                    "Authentication"
-                ],
-                "summary": "Login user and return authentication token",
-                "description": "Authenticate user with username and password, returns JWT token",
-                "operationId": "dd51a484b7fa0f97c7680fdbde14cf5f",
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "required": [
-                                    "username",
-                                    "password"
-                                ],
-                                "properties": {
-                                    "username": {
-                                        "type": "string",
-                                        "example": "admin"
-                                    },
-                                    "password": {
-                                        "type": "string",
-                                        "example": "password123"
-                                    }
-                                },
-                                "type": "object"
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": "Successful login",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "success": {
-                                            "type": "boolean",
-                                            "example": true
-                                        },
-                                        "data": {
-                                            "properties": {
-                                                "token": {
-                                                    "type": "string",
-                                                    "example": "fake-jwt-token"
-                                                },
-                                                "expires_at": {
-                                                    "type": "string",
-                                                    "example": "2026-11-02 10:00:00"
-                                                },
-                                                "user": {
-                                                    "properties": {
-                                                        "id": {
-                                                            "type": "integer",
-                                                            "example": 1
-                                                        },
-                                                        "username": {
-                                                            "type": "string",
-                                                            "example": "admin"
-                                                        },
-                                                        "email": {
-                                                            "type": "string",
-                                                            "example": "admin@example.com"
-                                                        },
-                                                        "role": {
-                                                            "type": "string",
-                                                            "example": "admin"
-                                                        }
-                                                    },
-                                                    "type": "object"
-                                                }
-                                            },
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "description": "Invalid credentials",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "success": {
-                                            "type": "boolean",
-                                            "example": false
-                                        },
-                                        "error": {
-                                            "type": "string",
-                                            "example": "Unauthorized"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/api/auth/logout": {
-            "post": {
-                "tags": [
-                    "Authentication"
-                ],
-                "summary": "Logout user and invalidate token",
-                "description": "Revoke user authentication token",
-                "operationId": "df9bdc6c7a6d9f20b983526b2ec0f698",
-                "responses": {
-                    "200": {
-                        "description": "Successfully logged out",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "success": {
-                                            "type": "boolean",
-                                            "example": true
-                                        },
-                                        "data": {
-                                            "properties": {
-                                                "message": {
-                                                    "type": "string",
-                                                    "example": "Logged out successfully"
-                                                }
-                                            },
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized"
-                    }
-                },
-                "security": [
-                    {
-                        "bearerAuth": []
-                    }
-                ]
-            }
-        },
-        "/api/auth/me": {
+        "/api/categories": {
             "get": {
                 "tags": [
-                    "Authentication"
+                    "Categories"
                 ],
-                "summary": "Get current authenticated user",
-                "description": "Returns the authenticated user details",
-                "operationId": "b5de204f5e452ef51327c691aa99e77c",
+                "summary": "List categories",
+                "description": "Returns categories for populating selection controls. Optionally filtered by category_type.",
+                "operationId": "ac9c4d978ea4e5b72915ca9728e5b8b1",
+                "parameters": [
+                    {
+                        "name": "category_type",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "general_category",
+                                "asset_group",
+                                "asset_type"
+                            ]
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
-                        "description": "User details",
+                        "description": "List of categories",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -1027,25 +892,28 @@
                                             "example": true
                                         },
                                         "data": {
-                                            "properties": {
-                                                "id": {
-                                                    "type": "integer",
-                                                    "example": 1
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "integer",
+                                                        "example": 1
+                                                    },
+                                                    "name": {
+                                                        "type": "string",
+                                                        "example": "Vehicle"
+                                                    },
+                                                    "code": {
+                                                        "type": "string",
+                                                        "example": "VEH"
+                                                    },
+                                                    "category_type": {
+                                                        "type": "string",
+                                                        "example": "asset_type"
+                                                    }
                                                 },
-                                                "username": {
-                                                    "type": "string",
-                                                    "example": "admin"
-                                                },
-                                                "email": {
-                                                    "type": "string",
-                                                    "example": "admin@example.com"
-                                                },
-                                                "role": {
-                                                    "type": "string",
-                                                    "example": "admin"
-                                                }
-                                            },
-                                            "type": "object"
+                                                "type": "object"
+                                            }
                                         }
                                     },
                                     "type": "object"
@@ -2121,8 +1989,8 @@
             "description": "Attachments"
         },
         {
-            "name": "Authentication",
-            "description": "Authentication"
+            "name": "Categories",
+            "description": "Categories"
         },
         {
             "name": "Dashboards",
