@@ -105,7 +105,7 @@ class Ledger extends Model
         int $recordId,
         array $oldData,
         array $newData,
-        int $userId,
+        ?int $userId,
         ?string $ipAddress = null,
         ?string $deviceType = null,
         ?array $metadata = null

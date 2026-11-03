@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { Observable, BehaviorSubject } from 'rxjs';
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { map } from 'rxjs/operators';
 import { ApiMapPin, MapPin } from '../dashboard/map-pin.model';
@@ -14,14 +14,68 @@ export interface Asset {
   id: number;
   stateId: string;
   name: string;
-  description: string;
-  category: string;
-  registeredLocation: string;
+  description: string | null;
+  category: string | null;
+  registeredLocation?: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  currentStatus: 'Fonctionnel' | 'En Panne' | 'Déclassé' | 'Inconnu';
+  purchaseValue?: number | null;
+  currentValue: number;
+  locationText?: string;
+}
+
+export interface AssetDetails extends Asset {
+  categoryId: number;
+  acquisitionDate: string | null;
+  parentAssetId: number | null;
+}
+
+export type AssetUpdate = Partial<Pick<AssetDetails,
+  'name' | 'description' | 'categoryId' | 'currentStatus' | 'currentValue' |
+  'registeredLocation' | 'acquisitionDate' | 'latitude' | 'longitude' | 'parentAssetId'
+>>;
+
+export interface AssetCreate {
+  stateId?: string;
+  name: string;
+  description: string | null;
+  categoryId: number;
+  currentStatus: Asset['currentStatus'];
+  currentValue: number;
+  purchaseValue?: number | null;
+  registeredLocation?: string | null;
+  acquisitionDate?: string | null;
   latitude: number;
   longitude: number;
-  currentStatus: 'Fonctionnel' | 'En Panne' | 'Déclassé' | 'Inconnu';
-  purchaseValue: number;
-  currentValue: number;
+  parentAssetId?: number | null;
+}
+
+export interface AssetPage {
+  items: Asset[];
+  total: number;
+}
+
+interface ApiAsset {
+  id: number;
+  state_id: string;
+  name: string;
+  description: string | null;
+  current_status: Asset['currentStatus'];
+  latitude: string | number | null;
+  longitude: string | number | null;
+  category_id: number;
+  category_name: string | null;
+  current_value: string | number;
+  registered_location?: string | null;
+  acquisition_date?: string | null;
+  purchase_value?: string | number | null;
+  parent_asset_id?: number | null;
+}
+
+interface ApiAssetPage {
+  items: ApiAsset[];
+  pagination: { total: number };
 }
 
 export interface RecentInspection {
@@ -49,20 +103,70 @@ export class AssetService {
   
   constructor(private http: HttpClient) {}
   
-  getAll(): Observable<Asset[]> {
-    return this.http.get<Asset[]>(this.apiUrlAssets);
+  getAll(page = 1, limit = 10, searchTerm = ''): Observable<AssetPage> {
+    let params = new HttpParams()
+      .set('page', page)
+      .set('limit', limit);
+    if (searchTerm) params = params.set('search', searchTerm);
+
+    return this.http.get<ApiResponse<ApiAssetPage>>(this.apiUrlAssets, { params }).pipe(
+      map(response => ({
+        items: Array.isArray(response?.data?.items)
+          ? response.data.items.map(asset => this.mapAsset(asset))
+          : [],
+        total: Number(response?.data?.pagination?.total ?? 0)
+      }))
+    );
   }
   
-  getById(id: number): Observable<Asset> {
-    return this.http.get<Asset>(`${this.apiUrlAssets}/${id}`);
+  getById(id: number): Observable<AssetDetails> {
+    return this.http.get<ApiResponse<ApiAsset>>(`${this.apiUrlAssets}/${id}`).pipe(
+      map(response => this.mapAsset(response.data) as AssetDetails)
+    );
   }
   
-  create(asset: Partial<Asset>): Observable<Asset> {
-    return this.http.post<Asset>(this.apiUrlAssets, asset);
+  create(asset: AssetCreate): Observable<number> {
+    const payload = {
+      state_id: asset.stateId || undefined,
+      name: asset.name,
+      description: asset.description,
+      category_id: asset.categoryId,
+      current_status: asset.currentStatus,
+      current_value: asset.currentValue,
+      purchase_value: asset.purchaseValue,
+      registered_location: asset.registeredLocation,
+      acquisition_date: asset.acquisitionDate,
+      latitude: asset.latitude,
+      longitude: asset.longitude,
+      parent_asset_id: asset.parentAssetId
+    };
+    return this.http.post<{ id: number }>(this.apiUrlAssets, payload).pipe(
+      map(response => response.id)
+    );
   }
   
-  update(id: number, asset: Partial<Asset>): Observable<Asset> {
-    return this.http.put<Asset>(`${this.apiUrlAssets}/${id}`, asset);
+  update(id: number, asset: AssetUpdate): Observable<void> {
+    const payload = {
+      name: asset.name,
+      description: asset.description,
+      category_id: asset.categoryId,
+      current_status: asset.currentStatus,
+      current_value: asset.currentValue,
+      registered_location: asset.registeredLocation,
+      acquisition_date: asset.acquisitionDate,
+      latitude: asset.latitude,
+      longitude: asset.longitude,
+      parent_asset_id: asset.parentAssetId
+    };
+    return this.http.put<ApiResponse<unknown>>(`${this.apiUrlAssets}/${id}`, payload).pipe(
+      map(() => undefined)
+    );
+  }
+
+  delete(id: number): Observable<void> {
+    return this.http.delete<ApiResponse<unknown>>(`${this.apiUrlAssets}/${id}`).pipe(
+      map(() => undefined)
+    );
   }
   
   getMapPins(): Observable<MapPin[]> {
@@ -95,7 +199,28 @@ export class AssetService {
     );
   }
   
-  search(searchTerm: string): Observable<Asset[]> {
-    return this.http.get<Asset[]>(`${this.apiUrlAssets}/search?q=${searchTerm}`);
+  private mapAsset(asset: ApiAsset): AssetDetails {
+    const status = asset.current_status;
+    const latitude = asset.latitude === null ? null : Number(asset.latitude);
+    const longitude = asset.longitude === null ? null : Number(asset.longitude);
+    return {
+      id: asset.id,
+      stateId: asset.state_id,
+      name: asset.name,
+      description: asset.description,
+      category: asset.category_name,
+      categoryId: asset.category_id,
+      registeredLocation: asset.registered_location ?? null,
+      acquisitionDate: asset.acquisition_date ?? null,
+      purchaseValue: asset.purchase_value == null ? null : Number(asset.purchase_value),
+      parentAssetId: asset.parent_asset_id ?? null,
+      latitude,
+      longitude,
+      locationText: latitude === null || longitude === null ? '' : `${latitude}, ${longitude}`,
+      currentStatus: status in { 'Fonctionnel': true, 'En Panne': true, 'Déclassé': true, 'Inconnu': true }
+        ? status
+        : 'Inconnu',
+      currentValue: Number(asset.current_value)
+    };
   }
 }

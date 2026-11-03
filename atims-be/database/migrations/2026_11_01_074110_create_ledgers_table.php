@@ -18,7 +18,7 @@ return new class extends Migration
             $table->unsignedBigInteger('record_id');
             $table->json('old_data')->nullable();
             $table->json('new_data');
-            $table->foreignId('user_id')->constrained('users');
+            $table->foreignId('user_id')->nullable()->constrained('users');
             $table->ipAddress('ip_address')->nullable();
             $table->string('device_type', 64)->nullable();
             $table->json('metadata')->nullable();

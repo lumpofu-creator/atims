@@ -20,7 +20,7 @@ class LedgerService
      * @param  int  $recordId  ID of the record affected
      * @param  array  $oldData  Previous state of the record
      * @param  array  $newData  New state of the record
-     * @param  int  $userId  ID of the user who made the change
+     * @param  int|null  $userId  ID of the user who made the change, if authenticated
      * @param  Request|null  $request  Request object for IP and device detection
      */
     public function recordEvent(
@@ -29,7 +29,7 @@ class LedgerService
         int $recordId,
         array $oldData,
         array $newData,
-        int $userId,
+        ?int $userId,
         ?Request $request = null
     ): Ledger {
         $ipAddress = $request ? $request->ip() : null;

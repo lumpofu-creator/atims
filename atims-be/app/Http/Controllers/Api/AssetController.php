@@ -212,7 +212,7 @@ class AssetController extends Controller
             $asset->id,
             [],
             $asset->toArray(),
-            $request->user()->id ?? 0,
+            $request->user()?->id,
             $request
         );
 
@@ -339,6 +339,7 @@ class AssetController extends Controller
         }
 
         $oldData = $asset->toArray();
+        unset($oldData['location_point']);
 
         $validated = $request->validate([
             'name' => 'sometimes|string|max:255',
@@ -348,25 +349,34 @@ class AssetController extends Controller
             'current_value' => 'sometimes|numeric|min:0',
             'registered_location' => 'nullable|string|max:255',
             'acquisition_date' => 'nullable|date',
+            'latitude' => 'sometimes|numeric|between:-90,90',
+            'longitude' => 'sometimes|numeric|between:-180,180',
             'parent_asset_id' => 'nullable|integer|exists:assets,id',
         ]);
 
-        if ($request->filled('latitude') && $request->filled('longitude')) {
-            $validated['latitude'] = $request->input('latitude');
-            $validated['longitude'] = $request->input('longitude');
+        $locationPoint = null;
+        if (isset($validated['latitude'], $validated['longitude'])) {
             $wkt = sprintf('POINT(%s %s)', $validated['longitude'], $validated['latitude']);
-            $validated['location_point'] = DB::raw("ST_PointFromText('{$wkt}', 4326)");
+            $locationPoint = DB::raw("ST_PointFromText('{$wkt}', 4326)");
         }
 
         $asset->update($validated);
+
+        if ($locationPoint !== null) {
+            DB::table('assets')->where('id', $asset->id)->update(['location_point' => $locationPoint]);
+            $asset->refresh();
+        }
+
+        $newData = $asset->toArray();
+        unset($newData['location_point']);
 
         $this->ledgerService->recordEvent(
             'Status Change',
             'assets',
             $asset->id,
             $oldData,
-            $asset->toArray(),
-            $request->user()->id ?? 0,
+            $newData,
+            $request->user()?->id,
             $request
         );
 

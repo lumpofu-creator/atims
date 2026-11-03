@@ -3,6 +3,7 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { IncidentService } from './incident.service';
 import { ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
+import { ActivatedRoute } from '@angular/router';
 
 @Component({
   selector: 'app-incident-log',
@@ -122,7 +123,8 @@ export class IncidentLogComponent implements OnInit {
   
   constructor(
     private fb: FormBuilder,
-    private incidentService: IncidentService
+    private incidentService: IncidentService,
+    private route: ActivatedRoute
   ) {}
   
   ngOnInit(): void {
@@ -132,6 +134,9 @@ export class IncidentLogComponent implements OnInit {
       fieldNotes: [''],
       defectImage: ['']
     });
+
+    const selectedAsset = this.route.snapshot.queryParamMap.get('asset');
+    if (selectedAsset) this.incidentForm.patchValue({ assetId: selectedAsset });
     
     // Listen for GPS changes
     this.watchGps();
